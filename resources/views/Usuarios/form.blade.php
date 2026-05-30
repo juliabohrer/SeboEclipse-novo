@@ -1,0 +1,140 @@
+@php
+    $editing = isset($usuario) && $usuario->exists;
+    $action  = $editing ? route('usuarios.update', $usuario) : route('usuarios.store');
+@endphp
+
+@extends('main')
+
+@section('titulo', $editing ? 'Editar Usuário · Eclipse Sebo' : 'Novo Usuário · Eclipse Sebo')
+
+@section('content')
+
+<div class="page-header">
+    <p class="tag">{{ $editing ? 'Atualizar registro' : 'Novo registro' }}</p>
+    <h1>{{ $editing ? 'Editar Usuário' : 'Cadastrar Usuário' }}</h1>
+</div>
+
+@if ($errors->any())
+    <div class="alert-error">
+        <strong>Corrija os erros abaixo:</strong>
+        <ul>
+            @foreach ($errors->all() as $error)
+                <li>{{ $error }}</li>
+            @endforeach
+        </ul>
+    </div>
+@endif
+
+<div class="card">
+    <form method="POST" action="{{ $action }}">
+        @csrf
+        @if ($editing) @method('PUT') @endif
+
+        <div class="card-body">
+            <div class="form-grid">
+
+                <div class="section-divider full"><span>Dados Pessoais</span></div>
+
+                <div class="form-group full">
+                    <label for="nome">Nome Completo</label>
+                    <input type="text" id="nome" name="nome"
+                        value="{{ old('nome', $usuario->nome ?? '') }}"
+                        placeholder="Ex.: João da Silva"
+                        class="{{ $errors->has('nome') ? 'is-invalid' : '' }}">
+                    @error('nome') <span class="field-error">{{ $message }}</span> @enderror
+                </div>
+
+                <div class="form-group">
+                    <label for="data_nascimento">Data de Nascimento</label>
+                    <input type="date" id="data_nascimento" name="data_nascimento"
+                        value="{{ old('data_nascimento', isset($usuario) ? \Carbon\Carbon::parse($usuario->data_nascimento)->format('Y-m-d') : '') }}"
+                        class="{{ $errors->has('data_nascimento') ? 'is-invalid' : '' }}">
+                    @error('data_nascimento') <span class="field-error">{{ $message }}</span> @enderror
+                </div>
+
+                <div class="form-group">
+                    <label for="cpf">CPF</label>
+                    <input type="text" id="cpf" name="cpf"
+                        value="{{ old('cpf', $usuario->cpf ?? '') }}"
+                        placeholder="000.000.000-00"
+                        class="{{ $errors->has('cpf') ? 'is-invalid' : '' }}">
+                    @error('cpf') <span class="field-error">{{ $message }}</span> @enderror
+                </div>
+
+                <div class="form-group full">
+                    <label for="endereco">Endereço</label>
+                    <input type="text" id="endereco" name="endereco"
+                        value="{{ old('endereco', $usuario->endereco ?? '') }}"
+                        placeholder="Ex.: Rua das Flores, 123 — Centro"
+                        class="{{ $errors->has('endereco') ? 'is-invalid' : '' }}">
+                    @error('endereco') <span class="field-error">{{ $message }}</span> @enderror
+                </div>
+
+                <div class="form-group">
+                    <label for="telefone">Telefone</label>
+                    <input type="text" id="telefone" name="telefone"
+                        value="{{ old('telefone', $usuario->telefone ?? '') }}"
+                        placeholder="(00) 00000-0000"
+                        class="{{ $errors->has('telefone') ? 'is-invalid' : '' }}">
+                    @error('telefone') <span class="field-error">{{ $message }}</span> @enderror
+                </div>
+
+                <div class="form-group">
+                    <label for="tipo">Tipo de Usuário</label>
+                    <select id="tipo" name="tipo"
+                        class="{{ $errors->has('tipo') ? 'is-invalid' : '' }}">
+                        <option value="" disabled {{ old('tipo', $usuario->tipo ?? '') === '' ? 'selected' : '' }}>Selecione…</option>
+                        @foreach (['admin' => 'Administrador', 'cliente' => 'Cliente'] as $value => $label)
+                            <option value="{{ $value }}"
+                                {{ old('tipo', $usuario->tipo ?? '') === $value ? 'selected' : '' }}>
+                                {{ $label }}
+                            </option>
+                        @endforeach
+                    </select>
+                    @error('tipo') <span class="field-error">{{ $message }}</span> @enderror
+                </div>
+
+                <div class="section-divider full"><span>Acesso</span></div>
+
+                <div class="form-group full">
+                    <label for="email">E-mail</label>
+                    <input type="email" id="email" name="email"
+                        value="{{ old('email', $usuario->email ?? '') }}"
+                        placeholder="exemplo@email.com"
+                        class="{{ $errors->has('email') ? 'is-invalid' : '' }}">
+                    @error('email') <span class="field-error">{{ $message }}</span> @enderror
+                </div>
+
+                <div class="form-group">
+                    <label for="senha">{{ $editing ? 'Nova Senha' : 'Senha' }}</label>
+                    <input type="password" id="senha" name="senha"
+                        placeholder="{{ $editing ? 'Deixe em branco para manter' : 'Mínimo 6 caracteres' }}"
+                        class="{{ $errors->has('senha') ? 'is-invalid' : '' }}">
+                    @error('senha')
+                        <span class="field-error">{{ $message }}</span>
+                    @else
+                        @if ($editing)
+                            <span class="field-hint">Deixe em branco para não alterar</span>
+                        @endif
+                    @enderror
+                </div>
+
+                <div class="form-group">
+                    <label for="senha_confirmation">Confirmar Senha</label>
+                    <input type="password" id="senha_confirmation" name="senha_confirmation"
+                        placeholder="Repita a senha">
+                </div>
+
+            </div>
+        </div>
+
+        <div class="card-footer">
+            <a href="{{ route('usuarios.index') }}" class="btn btn-ghost">Cancelar</a>
+            <button type="submit" class="btn btn-primary">
+                {{ $editing ? 'Salvar Alterações' : 'Cadastrar Usuário' }}
+            </button>
+        </div>
+    </form>
+</div>
+
+@endsection

@@ -1,6 +1,15 @@
 @php
-    $editing = isset($usuario) && $usuario->exists;
-    $action  = $editing ? route('usuarios.update', $usuario) : route('usuarios.store');
+    $editing  = isset($usuario) && $usuario->exists;
+    $isAdm    = auth()->check() && auth()->user()->tipo === 'adm';
+    $isPerfil = auth()->check() && auth()->user()->tipo === 'cliente' && $editing;
+
+    if ($editing && $isAdm) {
+        $action = route('usuarios.update', $usuario);
+    } elseif ($isPerfil) {
+        $action = route('cliente.perfil.update');
+    } else {
+        $action = route('cadastro.store');
+    }
 @endphp
 
 @extends('main')
@@ -28,7 +37,8 @@
 <div class="card">
     <form method="POST" action="{{ $action }}">
         @csrf
-        @if ($editing) @method('PUT') @endif
+        @if($editing && $isAdm) @method('PUT') @endif
+        @if($isPerfil) @method('PUT') @endif
 
         <div class="card-body">
             <div class="form-grid">
@@ -79,20 +89,23 @@
                     @error('telefone') <span class="field-error">{{ $message }}</span> @enderror
                 </div>
 
-                <div class="form-group">
-                    <label for="tipo">Tipo de Usuário</label>
-                    <select id="tipo" name="tipo"
-                        class="{{ $errors->has('tipo') ? 'is-invalid' : '' }}">
-                        <option value="" disabled {{ old('tipo', $usuario->tipo ?? '') === '' ? 'selected' : '' }}>Selecione…</option>
-                        @foreach (['admin' => 'Administrador', 'cliente' => 'Cliente'] as $value => $label)
-                            <option value="{{ $value }}"
-                                {{ old('tipo', $usuario->tipo ?? '') === $value ? 'selected' : '' }}>
-                                {{ $label }}
-                            </option>
-                        @endforeach
-                    </select>
-                    @error('tipo') <span class="field-error">{{ $message }}</span> @enderror
-                </div>
+                {{-- Campo tipo: só aparece para o adm --}}
+                @if ($isAdm)
+                    <div class="form-group">
+                        <label for="tipo">Tipo de Usuário</label>
+                        <select id="tipo" name="tipo"
+                            class="{{ $errors->has('tipo') ? 'is-invalid' : '' }}">
+                            <option value="" disabled {{ old('tipo', $usuario->tipo ?? '') === '' ? 'selected' : '' }}>Selecione…</option>
+                            @foreach (['adm' => 'Administrador', 'cliente' => 'Cliente'] as $value => $label)
+                                <option value="{{ $value }}"
+                                    {{ old('tipo', $usuario->tipo ?? '') === $value ? 'selected' : '' }}>
+                                    {{ $label }}
+                                </option>
+                            @endforeach
+                        </select>
+                        @error('tipo') <span class="field-error">{{ $message }}</span> @enderror
+                    </div>
+                @endif
 
                 <div class="section-divider full"><span>Acesso</span></div>
 
@@ -129,11 +142,18 @@
         </div>
 
         <div class="card-footer">
-            <a href="{{ route('usuarios.index') }}" class="btn btn-ghost">Cancelar</a>
+            @if ($isAdm)
+                <a href="{{ route('usuarios.index') }}" class="btn btn-ghost">Cancelar</a>
+            @elseif (auth()->check())
+                <a href="{{ route('cliente.perfil') }}" class="btn btn-ghost">Cancelar</a>
+            @else
+                <a href="{{ route('login') }}" class="btn btn-ghost">Voltar ao Login</a>
+            @endif
             <button type="submit" class="btn btn-primary">
                 {{ $editing ? 'Salvar Alterações' : 'Cadastrar Usuário' }}
             </button>
         </div>
+
     </form>
 </div>
 

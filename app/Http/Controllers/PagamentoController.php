@@ -6,6 +6,7 @@ use App\Models\Pagamento;
 use App\Models\Usuario;
 use App\Models\Venda;
 use Illuminate\Http\Request;
+use Illuminate\Routing\Controller;
 
 class PagamentoController extends Controller
 {

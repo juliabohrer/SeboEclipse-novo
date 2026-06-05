@@ -84,6 +84,39 @@ body {
     box-shadow: 0 0 16px rgba(124,58,237,.2);
 }
 
+/* SAUDAÇÃO DO USUÁRIO */
+.user-greeting {
+    font-family: 'Cinzel', serif;
+    font-size: .68rem;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    color: var(--gold);
+    padding: .4rem .6rem;
+    border-left: 1px solid var(--border);
+    margin-left: .25rem;
+}
+
+/* BOTÃO LOGOUT */
+.btn-logout {
+    background: transparent;
+    border: 1px solid rgba(248,113,113,.3);
+    color: var(--rust);
+    font-family: 'Cinzel', serif;
+    font-size: .65rem;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    padding: .45rem .9rem;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all .2s;
+}
+
+.btn-logout:hover {
+    background: var(--rust-bg);
+    border-color: var(--rust);
+    color: var(--rust);
+}
+
 /* CARDS */
 .card {
     background: var(--surface);
@@ -631,15 +664,44 @@ footer p {
 
 <!-- NAVBAR -->
 <nav class="navbar navbar-expand-lg">
-<div class="container">
+<div class="container d-flex align-items-center justify-content-between">
+
     <a class="navbar-brand" href="/">Eclipse<span>.</span>Sebo</a>
-    <div>
-        <a class="btn menu-btn me-2" href="{{ route('usuarios.index') }}">Usuários</a>
-        <a class="btn menu-btn me-2" href="{{ route('eventos.index') }}">Eventos</a>
-        <a class="btn menu-btn me-2" href="{{ route('livros.index') }}">Livros</a>
-        <a class="btn menu-btn me-2" href="{{ route('troca-livros.index') }}">Trocas</a>
-        <a class="btn menu-btn me-2" href="{{ route('compras.index') }}">Compras</a>
-        <a class="btn menu-btn me-2" href="{{ route('vendas.index') }}">Vendas</a>
+
+    <div class="d-flex align-items-center gap-2 flex-wrap">
+
+        @guest
+            {{-- Visitante: apenas botão de login --}}
+            <a class="btn menu-btn" href="{{ route('login') }}">Entrar</a>
+        @endguest
+
+        @auth
+            @if(auth()->user()->tipo === 'adm')
+                {{-- Menu do Administrador: acesso total --}}
+                <a class="btn menu-btn me-1" href="{{ route('usuarios.index') }}">Usuários</a>
+                <a class="btn menu-btn me-1" href="{{ route('eventos.index') }}">Eventos</a>
+                <a class="btn menu-btn me-1" href="{{ route('livros.index') }}">Livros</a>
+                <a class="btn menu-btn me-1" href="{{ route('troca-livros.index') }}">Trocas</a>
+                <a class="btn menu-btn me-1" href="{{ route('compras.index') }}">Compras</a>
+                <a class="btn menu-btn me-1" href="{{ route('vendas.index') }}">Vendas</a>
+            @else
+                {{-- Menu do Cliente: acesso limitado --}}
+                <a class="btn menu-btn me-1" href="{{ route('cliente.livros') }}">Livros</a>
+                <a class="btn menu-btn me-1" href="{{ route('cliente.eventos') }}">Eventos</a>
+                <a class="btn menu-btn me-1" href="{{ route('cliente.trocas') }}">Trocas</a>
+                <a class="btn menu-btn me-1" href="{{ route('cliente.perfil') }}">Meu Perfil</a>
+            @endif
+
+            {{-- Nome do usuário logado (campo correto: 'nome') --}}
+            <span class="user-greeting">{{ auth()->user()->nome }}</span>
+
+            {{-- Botão Sair --}}
+            <form method="POST" action="{{ route('logout') }}" style="margin:0">
+                @csrf
+                <button type="submit" class="btn-logout">Sair</button>
+            </form>
+        @endauth
+
     </div>
 </div>
 </nav>

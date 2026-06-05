@@ -10,10 +10,12 @@
         <h1>Trocas de Livros</h1>
         <p class="subtitle">Gerencie as trocas registradas no sistema</p>
     </div>
-    <a href="{{ route('troca-livros.create') }}" class="btn btn-primary">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-        Nova Troca
-    </a>
+    @if(auth()->user()->tipo === 'adm')
+        <a href="{{ route('troca-livros.create') }}" class="btn btn-primary">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            Nova Troca
+        </a>
+    @endif
 </div>
 
 <div class="toolbar">
@@ -30,7 +32,9 @@
     @if ($trocas->isEmpty())
         <div class="empty-state">
             <p>Nenhuma troca registrada ainda.</p>
-            <span>Clique em <strong>Nova Troca</strong> para começar.</span>
+            @if(auth()->user()->tipo === 'adm')
+                <span>Clique em <strong>Nova Troca</strong> para começar.</span>
+            @endif
         </div>
     @else
         <table id="trocas-table">
@@ -42,7 +46,9 @@
                     <th>Valor Pago</th>
                     <th>Status</th>
                     <th>Disponível</th>
-                    <th>Ações</th>
+                    @if(auth()->user()->tipo === 'adm')
+                        <th>Ações</th>
+                    @endif
                 </tr>
             </thead>
             <tbody>
@@ -78,17 +84,19 @@
                                 <span class="dot dot-no">Não</span>
                             @endif
                         </td>
-                        <td>
-                            <div class="actions">
-                                <a href="{{ route('troca-livros.edit', $troca) }}" class="btn btn-ghost">Editar</a>
-                                <form method="POST" action="{{ route('troca-livros.destroy', $troca) }}"
-                                      onsubmit="return confirm('Remover esta troca?')">
-                                    @csrf
-                                    @method('DELETE')
-                                    <button type="submit" class="btn btn-danger">Remover</button>
-                                </form>
-                            </div>
-                        </td>
+                        @if(auth()->user()->tipo === 'adm')
+                            <td>
+                                <div class="actions">
+                                    <a href="{{ route('troca-livros.edit', $troca) }}" class="btn btn-ghost">Editar</a>
+                                    <form method="POST" action="{{ route('troca-livros.destroy', $troca) }}"
+                                          onsubmit="return confirm('Remover esta troca?')">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit" class="btn btn-danger">Remover</button>
+                                    </form>
+                                </div>
+                            </td>
+                        @endif
                     </tr>
                 @endforeach
             </tbody>

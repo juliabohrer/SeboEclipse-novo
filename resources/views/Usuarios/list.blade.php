@@ -10,10 +10,12 @@
         <h1>Usuários</h1>
         <p class="subtitle">Gerencie os usuários cadastrados no sistema</p>
     </div>
-    <a href="{{ route('usuarios.create') }}" class="btn btn-primary">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-        Novo Usuário
-    </a>
+    @if (auth()->user()->tipo === 'adm')
+        <a href="{{ route('usuarios.create') }}" class="btn btn-primary">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            Novo Usuário
+        </a>
+    @endif
 </div>
 
 <div class="toolbar">
@@ -30,7 +32,9 @@
     @if ($usuarios->isEmpty())
         <div class="empty-state">
             <p>Nenhum usuário cadastrado ainda.</p>
-            <span>Clique em <strong>Novo Usuário</strong> para começar.</span>
+            @if (auth()->user()->tipo === 'adm')
+                <span>Clique em <strong>Novo Usuário</strong> para começar.</span>
+            @endif
         </div>
     @else
         <table id="usuarios-table">
@@ -41,7 +45,9 @@
                     <th class="col-telefone">Telefone</th>
                     <th class="col-endereco">Endereço</th>
                     <th>Tipo</th>
-                    <th>Ações</th>
+                    @if (auth()->user()->tipo === 'adm')
+                        <th>Ações</th>
+                    @endif
                 </tr>
             </thead>
             <tbody>
@@ -59,17 +65,19 @@
                                 {{ ucfirst($usuario->tipo) }}
                             </span>
                         </td>
-                        <td>
-                            <div class="actions">
-                                <a href="{{ route('usuarios.edit', $usuario) }}" class="btn btn-ghost">Editar</a>
-                                <form method="POST" action="{{ route('usuarios.destroy', $usuario) }}"
-                                      onsubmit="return confirm('Remover \'{{ addslashes($usuario->nome) }}\'?')">
-                                    @csrf
-                                    @method('DELETE')
-                                    <button type="submit" class="btn btn-danger">Remover</button>
-                                </form>
-                            </div>
-                        </td>
+                        @if (auth()->user()->tipo === 'adm')
+                            <td>
+                                <div class="actions">
+                                    <a href="{{ route('usuarios.edit', $usuario) }}" class="btn btn-ghost">Editar</a>
+                                    <form method="POST" action="{{ route('usuarios.destroy', $usuario) }}"
+                                          onsubmit="return confirm('Remover \'{{ addslashes($usuario->nome) }}\'?')">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit" class="btn btn-danger">Remover</button>
+                                    </form>
+                                </div>
+                            </td>
+                        @endif
                     </tr>
                 @endforeach
             </tbody>

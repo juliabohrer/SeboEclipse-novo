@@ -9,28 +9,27 @@ class CompraLivroUsado extends Model
 {
     use HasFactory;
 
-    protected $table = 'compra_livro_usados';
+    protected $table = 'compra_livro_usados'; // corrigido!
 
     protected $fillable = [
         'usuario_id',
-        'livro_id',
+        'fornecedor',
         'data',
-        'valor_pago',
+        'valor_total',
     ];
 
     protected $casts = [
-        'data'       => 'date',
-        'valor_pago' => 'float',
+        'data'        => 'date',
+        'valor_total' => 'float',
     ];
 
-    // Relationships
     public function usuario()
     {
         return $this->belongsTo(Usuario::class, 'usuario_id');
     }
 
-    public function livro()
+    public function itens()
     {
-        return $this->belongsTo(Livro::class, 'livro_id');
+        return $this->hasMany(CompraLivroUsadoItem::class, 'compra_id');
     }
 }

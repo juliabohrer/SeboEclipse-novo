@@ -10,27 +10,27 @@ use Illuminate\Routing\Controller;
 
 class TrocaLivroController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware(function ($request, $next) {
+            if (in_array($request->route()->getActionMethod(), ['create', 'store', 'edit', 'update', 'destroy'])) {
+                abort_if(auth()->user()->tipo !== 'adm', 403);
+            }
+            return $next($request);
+        });
+    }
+
     public function index()
     {
-        $trocas = TrocaLivro::with([
-            'livroNovo',
-            'livroAntigo',
-            'usuario'
-        ])->get();
-
+        $trocas = TrocaLivro::with(['livroNovo', 'livroAntigo', 'usuario'])->get();
         return view('troca-livros.list', compact('trocas'));
     }
 
     public function create()
     {
-        $livros = Livro::where('disponivel', true)->get();
-
+        $livros   = Livro::where('disponivel', true)->get();
         $usuarios = Usuario::all();
-
-        return view(
-            'troca-livros.form',
-            compact('livros', 'usuarios')
-        );
+        return view('troca-livros.form', compact('livros', 'usuarios'));
     }
 
     public function store(Request $request)
@@ -46,21 +46,15 @@ class TrocaLivroController extends Controller
 
         TrocaLivro::create($validated);
 
-        return redirect()
-            ->route('troca-livros.index')
-            ->with('success', 'Troca registrada com sucesso!');
+        return redirect()->route('troca-livros.index')
+                         ->with('success', 'Troca registrada com sucesso!');
     }
 
     public function edit(TrocaLivro $trocaLivro)
     {
-        $livros = Livro::all();
-
+        $livros   = Livro::all();
         $usuarios = Usuario::all();
-
-        return view(
-            'troca-livros.form',
-            compact('trocaLivro', 'livros', 'usuarios')
-        );
+        return view('troca-livros.form', compact('trocaLivro', 'livros', 'usuarios'));
     }
 
     public function update(Request $request, TrocaLivro $trocaLivro)
@@ -76,17 +70,15 @@ class TrocaLivroController extends Controller
 
         $trocaLivro->update($validated);
 
-        return redirect()
-            ->route('troca-livros.index')
-            ->with('success', 'Troca atualizada com sucesso!');
+        return redirect()->route('troca-livros.index')
+                         ->with('success', 'Troca atualizada com sucesso!');
     }
 
     public function destroy(TrocaLivro $trocaLivro)
     {
         $trocaLivro->delete();
 
-        return redirect()
-            ->route('troca-livros.index')
-            ->with('success', 'Troca removida com sucesso!');
+        return redirect()->route('troca-livros.index')
+                         ->with('success', 'Troca removida com sucesso!');
     }
 }

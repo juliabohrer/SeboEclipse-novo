@@ -8,10 +8,19 @@ use Illuminate\Routing\Controller;
 
 class LivroController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware(function ($request, $next) {
+            if (in_array($request->route()->getActionMethod(), ['create', 'store', 'edit', 'update', 'destroy'])) {
+                abort_if(auth()->user()->tipo !== 'adm', 403);
+            }
+            return $next($request);
+        });
+    }
+
     public function index()
     {
         $livros = Livro::all();
-
         return view('livros.list', compact('livros'));
     }
 

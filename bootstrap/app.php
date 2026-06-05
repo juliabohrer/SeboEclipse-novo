@@ -11,7 +11,9 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
-        //
+        $middleware->alias([
+            'check.tipo' => \App\Http\Middleware\CheckTipo::class,
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         //

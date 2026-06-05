@@ -5,7 +5,6 @@ namespace App\Http\Controllers;
 use App\Models\InscricaoEvento;
 use App\Models\Usuario;
 use App\Models\Evento;
-
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Illuminate\Routing\Controller;
@@ -14,196 +13,98 @@ class InscricaoEventoController extends Controller
 {
     public function index()
     {
-        $inscricoes = InscricaoEvento::with([
-            'usuario',
-            'evento'
-        ])->get();
-
-        return view(
-            'inscricoes.list',
-            compact('inscricoes')
-        );
+        $inscricoes = InscricaoEvento::with(['usuario', 'evento'])->get();
+        return view('inscricoes.list', compact('inscricoes'));
     }
 
     public function create(Request $request)
     {
         $usuarios = Usuario::all();
-
         $eventos = Evento::all();
-
-        $eventoSelecionado =
-            $request->evento_id;
-
-        return view(
-            'inscricoes.form',
-            compact(
-                'usuarios',
-                'eventos',
-                'eventoSelecionado'
-            )
-        );
+        $eventoSelecionado = $request->evento_id;
+        return view('inscricoes.form', compact('usuarios', 'eventos', 'eventoSelecionado'));
     }
 
     public function store(Request $request)
     {
-        $validated = $request->validate([
+        $isCliente = auth()->check() && auth()->user()->tipo === 'cliente';
 
-            'usuario_id' => [
-                'required',
-                'exists:usuarios,id'
-            ],
-
-            'evento_id' => [
-                'required',
-                'exists:eventos,id'
-            ],
-
-            'data_inscricao' => [
-                'required',
-                'date'
-            ],
-
-            'forma_pagamento' => [
-                'required',
-                'in:pix,cartao_credito,cartao_debito,dinheiro'
-            ],
-
-        ]);
-
-        $evento = Evento::with(
-            'inscricoes'
-        )->findOrFail(
-            $validated['evento_id']
-        );
-
-        if (
-            $evento->inscricoes->count()
-            >=
-            $evento->limite_pessoas
-        ) {
-
-            return back()
-                ->withErrors([
-                    'evento_id' =>
-                    'Este evento está lotado.'
-                ])
-                ->withInput();
-
+        if ($isCliente) {
+            $request->merge(['usuario_id' => auth()->user()->id]);
         }
 
-        $jaInscrito =
-            InscricaoEvento::where(
-                'usuario_id',
-                $validated['usuario_id']
-            )
-            ->where(
-                'evento_id',
-                $validated['evento_id']
-            )
+        $validated = $request->validate([
+            'usuario_id'      => 'required|exists:usuarios,id',
+            'evento_id'       => 'required|exists:eventos,id',
+            'data_inscricao'  => 'required|date',
+            'forma_pagamento' => 'required|in:pix,cartao_credito,cartao_debito,dinheiro',
+        ]);
+
+        $evento = Evento::with('inscricoes')->findOrFail($validated['evento_id']);
+
+        if ($evento->inscricoes->count() >= $evento->limite_pessoas) {
+            return back()->withErrors(['evento_id' => 'Este evento está lotado.'])->withInput();
+        }
+
+        $jaInscrito = InscricaoEvento::where('usuario_id', $validated['usuario_id'])
+            ->where('evento_id', $validated['evento_id'])
             ->exists();
 
         if ($jaInscrito) {
-
-            return back()
-                ->withErrors([
-                    'usuario_id' =>
-                    'Usuário já inscrito neste evento.'
-                ])
-                ->withInput();
-
+            return back()->withErrors(['usuario_id' => 'Você já está inscrito neste evento.'])->withInput();
         }
 
-        $validated['codigo_inscricao'] =
-            strtoupper(
-                Str::random(8)
-            );
+        $validated['codigo_inscricao'] = strtoupper(Str::random(8));
 
-        InscricaoEvento::create(
-            $validated
-        );
+        InscricaoEvento::create($validated);
 
-        return redirect()
-            ->route('inscricoes.index')
-            ->with(
-                'success',
-                'Inscrição realizada com sucesso!'
-            );
+        if ($isCliente) {
+            return redirect()->route('cliente.eventos')
+                             ->with('success', 'Inscrição realizada com sucesso!');
+        }
+
+        return redirect()->route('inscricoes.index')
+                         ->with('success', 'Inscrição realizada com sucesso!');
     }
 
-    public function edit(
-        InscricaoEvento $inscricao
-    ) {
-
+    public function edit(InscricaoEvento $inscricao)
+    {
         $usuarios = Usuario::all();
-
         $eventos = Evento::all();
-
-        return view(
-            'inscricoes.form',
-            compact(
-                'inscricao',
-                'usuarios',
-                'eventos'
-            )
-        );
-
+        return view('inscricoes.form', compact('inscricao', 'usuarios', 'eventos'));
     }
 
-    public function update(
-        Request $request,
-        InscricaoEvento $inscricao
-    ) {
-
+    public function update(Request $request, InscricaoEvento $inscricao)
+    {
         $validated = $request->validate([
-
-            'usuario_id' => [
-                'required',
-                'exists:usuarios,id'
-            ],
-
-            'evento_id' => [
-                'required',
-                'exists:eventos,id'
-            ],
-
-            'data_inscricao' => [
-                'required',
-                'date'
-            ],
-
-            'forma_pagamento' => [
-                'required',
-                'in:pix,cartao_credito,cartao_debito,dinheiro'
-            ],
-
+            'usuario_id'      => 'required|exists:usuarios,id',
+            'evento_id'       => 'required|exists:eventos,id',
+            'data_inscricao'  => 'required|date',
+            'forma_pagamento' => 'required|in:pix,cartao_credito,cartao_debito,dinheiro',
         ]);
 
-        $inscricao->update(
-            $validated
-        );
+        $inscricao->update($validated);
 
-        return redirect()
-            ->route('inscricoes.index')
-            ->with(
-                'success',
-                'Inscrição atualizada com sucesso!'
-            );
-
+        return redirect()->route('inscricoes.index')
+                         ->with('success', 'Inscrição atualizada com sucesso!');
     }
 
-    public function destroy(
-        InscricaoEvento $inscricao
-    ) {
-
+    public function destroy(InscricaoEvento $inscricao)
+    {
         $inscricao->delete();
 
-        return redirect()
-            ->route('inscricoes.index')
-            ->with(
-                'success',
-                'Inscrição removida com sucesso!'
-            );
+        return redirect()->route('inscricoes.index')
+                         ->with('success', 'Inscrição removida com sucesso!');
+    }
 
+    public function porEvento(Evento $evento)
+    {
+        $inscricoes = $evento->inscricoes()->with('usuario')->get();
+        return view('inscricoes.list', compact('inscricoes', 'evento'));
+    }
+
+    public function createCliente(Evento $evento)
+    {
+        return view('inscricoes.form', compact('evento'));
     }
 }
-

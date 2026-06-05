@@ -9,17 +9,26 @@ use Illuminate\Routing\Controller;
 
 class EventoController extends Controller
 {
-    public function index() { $eventos = 
-    Evento::with([ 'usuario', 'inscricoes.usuario' ])->get(); return view( 'eventos.list', compact('eventos') ); }
+    public function __construct()
+    {
+        $this->middleware(function ($request, $next) {
+            if (in_array($request->route()->getActionMethod(), ['create', 'store', 'edit', 'update', 'destroy'])) {
+                abort_if(auth()->user()->tipo !== 'adm', 403);
+            }
+            return $next($request);
+        });
+    }
+
+    public function index()
+    {
+        $eventos = Evento::with(['usuario', 'inscricoes.usuario'])->get();
+        return view('eventos.list', compact('eventos'));
+    }
 
     public function create()
     {
         $usuarios = Usuario::all();
-
-        return view(
-            'eventos.form',
-            compact('usuarios')
-        );
+        return view('eventos.form', compact('usuarios'));
     }
 
     public function store(Request $request)
@@ -36,31 +45,18 @@ class EventoController extends Controller
 
         Evento::create($validated);
 
-        return redirect()
-            ->route('eventos.index')
-            ->with(
-                'success',
-                'Evento criado com sucesso!'
-            );
+        return redirect()->route('eventos.index')
+                         ->with('success', 'Evento criado com sucesso!');
     }
 
     public function edit(Evento $evento)
     {
         $usuarios = Usuario::all();
-
-        return view(
-            'eventos.form',
-            compact(
-                'evento',
-                'usuarios'
-            )
-        );
+        return view('eventos.form', compact('evento', 'usuarios'));
     }
 
-    public function update(
-        Request $request,
-        Evento $evento
-    ) {
+    public function update(Request $request, Evento $evento)
+    {
         $validated = $request->validate([
             'usuario_id'       => 'required|exists:usuarios,id',
             'titulo'           => 'required|string|max:255',
@@ -73,23 +69,15 @@ class EventoController extends Controller
 
         $evento->update($validated);
 
-        return redirect()
-            ->route('eventos.index')
-            ->with(
-                'success',
-                'Evento atualizado com sucesso!'
-            );
+        return redirect()->route('eventos.index')
+                         ->with('success', 'Evento atualizado com sucesso!');
     }
 
     public function destroy(Evento $evento)
     {
         $evento->delete();
 
-        return redirect()
-            ->route('eventos.index')
-            ->with(
-                'success',
-                'Evento removido com sucesso!'
-            );
+        return redirect()->route('eventos.index')
+                         ->with('success', 'Evento removido com sucesso!');
     }
 }

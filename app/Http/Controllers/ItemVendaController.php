@@ -6,6 +6,7 @@ use App\Models\ItemVenda;
 use App\Models\Venda;
 use App\Models\Livro;
 use Illuminate\Http\Request;
+use Illuminate\Routing\Controller;
 
 class ItemVendaController extends Controller
 {
@@ -33,12 +34,10 @@ class ItemVendaController extends Controller
 
         $item = ItemVenda::create($validated);
 
-        // Atualiza o valor total da venda
         $venda = Venda::find($validated['venda_id']);
         $venda->valor_total = $venda->itensVenda->sum(fn($i) => $i->valor_unitario * $i->quantidade);
         $venda->save();
 
-        // Marca o livro como indisponível
         Livro::find($validated['livro_id'])->update(['disponivel' => false]);
 
         return redirect()->route('itens-venda.index')
@@ -69,7 +68,6 @@ class ItemVendaController extends Controller
 
         $itensVenda->update($validated);
 
-        // Recalcula o valor total da venda
         $venda = Venda::find($validated['venda_id']);
         $venda->valor_total = $venda->itensVenda->sum(fn($i) => $i->valor_unitario * $i->quantidade);
         $venda->save();
@@ -80,16 +78,14 @@ class ItemVendaController extends Controller
 
     public function destroy(ItemVenda $itensVenda)
     {
-        $venda  = $itensVenda->venda;
-        $livro  = $itensVenda->livro;
+        $venda = $itensVenda->venda;
+        $livro = $itensVenda->livro;
 
         $itensVenda->delete();
 
-        // Recalcula o valor total da venda
         $venda->valor_total = $venda->itensVenda->sum(fn($i) => $i->valor_unitario * $i->quantidade);
         $venda->save();
 
-        // Marca o livro como disponível novamente
         $livro->update(['disponivel' => true]);
 
         return redirect()->route('itens-venda.index')

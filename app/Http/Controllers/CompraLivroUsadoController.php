@@ -3,10 +3,12 @@
 namespace App\Http\Controllers;
 
 use App\Models\CompraLivroUsado;
+use App\Models\CompraLivroUsadoItem;
 use App\Models\Usuario;
 use App\Models\Livro;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
+use Illuminate\Support\Facades\DB;
 
 class CompraLivroUsadoController extends Controller
 {
@@ -14,7 +16,7 @@ class CompraLivroUsadoController extends Controller
     {
         $compras = CompraLivroUsado::with([
             'usuario',
-            'livro'
+            'itens'
         ])->get();
 
         return view('compras.list', compact('compras'));
@@ -24,95 +26,145 @@ class CompraLivroUsadoController extends Controller
     {
         $usuarios = Usuario::all();
 
-        $livros = Livro::where(
-            'disponivel',
-            true
-        )->get();
-
-        return view(
-            'compras.form',
-            compact('usuarios', 'livros')
-        );
+        return view('compras.form', compact('usuarios'));
     }
 
     public function store(Request $request)
     {
-        $validated = $request->validate([
-            'usuario_id' => 'required|exists:usuarios,id',
-            'livro_id'   => 'required|exists:livros,id',
-            'data'       => 'required|date',
-            'valor_pago' => 'required|numeric|min:0',
+        $request->validate([
+            'usuario_id'                 => 'required|exists:usuarios,id',
+            'fornecedor'                 => 'nullable|string|max:255',
+            'data'                       => 'required|date',
+            'itens'                      => 'required|array|min:1',
+            'itens.*.titulo'             => 'required|string|max:255',
+            'itens.*.autor'              => 'required|string|max:255',
+            'itens.*.genero'             => 'required|string|max:255',
+            'itens.*.editora'            => 'required|string|max:255',
+            'itens.*.estado_conservacao' => 'required|string|max:255',
+            'itens.*.preco_venda'        => 'required|numeric|min:0',
+            'itens.*.valor_pago'         => 'required|numeric|min:0',
         ]);
 
-        CompraLivroUsado::create($validated);
+        DB::transaction(function () use ($request) {
+            $compra = CompraLivroUsado::create([
+                'usuario_id'  => $request->usuario_id,
+                'fornecedor'  => $request->fornecedor,
+                'data'        => $request->data,
+                'valor_total' => collect($request->itens)->sum('valor_pago'),
+            ]);
 
-        Livro::find(
-            $validated['livro_id']
-        )->update([
-            'disponivel' => false
-        ]);
+            foreach ($request->itens as $item) {
+                $livro = Livro::create([
+                    'titulo'             => $item['titulo'],
+                    'autor'              => $item['autor'],
+                    'genero'             => $item['genero'],
+                    'editora'            => $item['editora'],
+                    'preco'              => $item['preco_venda'],
+                    'estado_conservacao' => $item['estado_conservacao'],
+                    'disponivel'         => true,
+                ]);
+
+                CompraLivroUsadoItem::create([
+                    'compra_id'          => $compra->id,
+                    'livro_id'           => $livro->id,
+                    'titulo'             => $item['titulo'],
+                    'autor'              => $item['autor'],
+                    'genero'             => $item['genero'],
+                    'editora'            => $item['editora'],
+                    'estado_conservacao' => $item['estado_conservacao'],
+                    'preco_venda'        => $item['preco_venda'],
+                    'valor_pago'         => $item['valor_pago'],
+                ]);
+            }
+        });
 
         return redirect()
             ->route('compras.index')
-            ->with(
-                'success',
-                'Compra registrada com sucesso!'
-            );
+            ->with('success', 'Compra registrada e livros adicionados ao acervo!');
     }
 
     public function edit(CompraLivroUsado $compra)
     {
         $usuarios = Usuario::all();
+        $compra->load('itens');
 
-        $livros = Livro::all();
-
-        return view(
-            'compras.form',
-            compact(
-                'compra',
-                'usuarios',
-                'livros'
-            )
-        );
+        return view('compras.form', compact('compra', 'usuarios'));
     }
 
-    public function update(
-        Request $request,
-        CompraLivroUsado $compra
-    ) {
-        $validated = $request->validate([
-            'usuario_id' => 'required|exists:usuarios,id',
-            'livro_id'   => 'required|exists:livros,id',
-            'data'       => 'required|date',
-            'valor_pago' => 'required|numeric|min:0',
+    public function update(Request $request, CompraLivroUsado $compra)
+    {
+        $request->validate([
+            'usuario_id'                 => 'required|exists:usuarios,id',
+            'fornecedor'                 => 'nullable|string|max:255',
+            'data'                       => 'required|date',
+            'itens'                      => 'required|array|min:1',
+            'itens.*.titulo'             => 'required|string|max:255',
+            'itens.*.autor'              => 'required|string|max:255',
+            'itens.*.genero'             => 'required|string|max:255',
+            'itens.*.editora'            => 'required|string|max:255',
+            'itens.*.estado_conservacao' => 'required|string|max:255',
+            'itens.*.preco_venda'        => 'required|numeric|min:0',
+            'itens.*.valor_pago'         => 'required|numeric|min:0',
         ]);
 
-        $compra->update($validated);
+        DB::transaction(function () use ($request, $compra) {
+            $compra->update([
+                'usuario_id'  => $request->usuario_id,
+                'fornecedor'  => $request->fornecedor,
+                'data'        => $request->data,
+                'valor_total' => collect($request->itens)->sum('valor_pago'),
+            ]);
+
+            foreach ($compra->itens as $itemAntigo) {
+                if ($itemAntigo->livro_id) {
+                    Livro::find($itemAntigo->livro_id)?->delete();
+                }
+                $itemAntigo->delete();
+            }
+
+            foreach ($request->itens as $item) {
+                $livro = Livro::create([
+                    'titulo'             => $item['titulo'],
+                    'autor'              => $item['autor'],
+                    'genero'             => $item['genero'],
+                    'editora'            => $item['editora'],
+                    'preco'              => $item['preco_venda'],
+                    'estado_conservacao' => $item['estado_conservacao'],
+                    'disponivel'         => true,
+                ]);
+
+                CompraLivroUsadoItem::create([
+                    'compra_id'          => $compra->id,
+                    'livro_id'           => $livro->id,
+                    'titulo'             => $item['titulo'],
+                    'autor'              => $item['autor'],
+                    'genero'             => $item['genero'],
+                    'editora'            => $item['editora'],
+                    'estado_conservacao' => $item['estado_conservacao'],
+                    'preco_venda'        => $item['preco_venda'],
+                    'valor_pago'         => $item['valor_pago'],
+                ]);
+            }
+        });
 
         return redirect()
             ->route('compras.index')
-            ->with(
-                'success',
-                'Compra atualizada com sucesso!'
-            );
+            ->with('success', 'Compra atualizada com sucesso!');
     }
 
-    public function destroy(
-        CompraLivroUsado $compra
-    ) {
-        Livro::find(
-            $compra->livro_id
-        )->update([
-            'disponivel' => true
-        ]);
-
-        $compra->delete();
+    public function destroy(CompraLivroUsado $compra)
+    {
+        DB::transaction(function () use ($compra) {
+            foreach ($compra->itens as $item) {
+                if ($item->livro_id) {
+                    Livro::find($item->livro_id)?->delete();
+                }
+            }
+            $compra->delete();
+        });
 
         return redirect()
             ->route('compras.index')
-            ->with(
-                'success',
-                'Compra removida com sucesso!'
-            );
+            ->with('success', 'Compra e livros removidos com sucesso!');
     }
 }

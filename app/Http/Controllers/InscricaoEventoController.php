@@ -17,6 +17,32 @@ class InscricaoEventoController extends Controller
         return view('inscricoes.list', compact('inscricoes'));
     }
 
+    public function search(Request $request)
+    {
+        $search = trim($request->input('search', ''));
+
+        $query = InscricaoEvento::with(['usuario', 'evento']);
+
+        if ($search) {
+            foreach (explode(' ', $search) as $palavra) {
+                if ($palavra === '') continue;
+                $query->where(function ($q) use ($palavra) {
+                    $q->whereHas('usuario', function ($u) use ($palavra) {
+                        $u->where('nome', 'like', "%{$palavra}%");
+                    })
+                    ->orWhereHas('evento', function ($e) use ($palavra) {
+                        $e->where('titulo', 'like', "%{$palavra}%");
+                    })
+                    ->orWhere('codigo_inscricao', 'like', "%{$palavra}%");
+                });
+            }
+        }
+
+        $inscricoes = $query->get();
+
+        return view('inscricoes.list', compact('inscricoes'));
+    }
+
     public function create(Request $request)
     {
         $usuarios = Usuario::all();
@@ -69,9 +95,11 @@ class InscricaoEventoController extends Controller
 
     public function edit(InscricaoEvento $inscricao)
     {
+        
         $usuarios = Usuario::all();
         $eventos = Evento::all();
-        return view('inscricoes.form', compact('inscricao', 'usuarios', 'eventos'));
+        $eventoSelecionado = $inscricao->evento_id;
+        return view('inscricoes.form', compact('inscricao', 'usuarios', 'eventos', 'eventoSelecionado'));
     }
 
     public function update(Request $request, InscricaoEvento $inscricao)

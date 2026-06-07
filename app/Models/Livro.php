@@ -16,6 +16,7 @@ class Livro extends Model
         'autor',
         'genero',
         'editora',
+        'imagem',
         'preco',
         'estado_conservacao',
         'disponivel',

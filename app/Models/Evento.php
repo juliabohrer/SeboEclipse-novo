@@ -16,6 +16,7 @@ class Evento extends Model
         'titulo',
         'descricao',
         'data_hora_inicio',
+        'imagem',
         'data_hora_fim',
         'limite_pessoas',
         'valor_ingresso',

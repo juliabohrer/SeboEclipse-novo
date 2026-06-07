@@ -355,22 +355,33 @@ h2, h4 {
 
 .search-input {
     width: 100%;
-    padding: .55rem .9rem .55rem 2.2rem;
+    height: 48px;
+    padding: 0 18px;
     font-family: 'Crimson Pro', serif;
-    font-size: .95rem;
+    font-size: 1rem;
     background: var(--surface);
     border: 1px solid var(--border);
-    border-radius: 6px;
+    border-radius: 10px;
     outline: none;
     color: var(--text);
-    transition: border-color .2s, box-shadow .2s;
+    transition: all .2s;
 }
 
 .search-input::placeholder { color: var(--muted); }
 
 .search-input:focus {
-    border-color: rgba(167,139,250,.5);
-    box-shadow: 0 0 0 3px rgba(124,58,237,.1);
+    border-color: var(--gold);
+    box-shadow: 0 0 0 3px rgba(226,184,90,.15);
+}
+
+.search-bar {
+    margin-bottom: 1.5rem;
+}
+
+.search-bar form {
+    display: flex;
+    gap: .75rem;
+    align-items: center;
 }
 
 .count-badge {
@@ -528,6 +539,9 @@ input[type="number"],
 input[type="email"],
 input[type="password"],
 input[type="date"],
+input[type="datetime-local"],
+input[type="file"],
+textarea,
 select {
     width: 100%;
     padding: .65rem .9rem;
@@ -542,18 +556,36 @@ select {
     appearance: none;
 }
 
-input:focus, select:focus {
+textarea {
+    resize: vertical;
+    min-height: 100px;
+}
+
+input:focus,
+select:focus,
+textarea:focus {
     border-color: rgba(167,139,250,.5);
     box-shadow: 0 0 0 3px rgba(124,58,237,.1);
 }
 
-input.is-invalid, select.is-invalid {
+input.is-invalid,
+select.is-invalid,
+textarea.is-invalid {
     border-color: rgba(248,113,113,.5);
     box-shadow: 0 0 0 3px rgba(248,113,113,.08);
 }
 
-input::placeholder { color: var(--muted); }
+input::placeholder,
+textarea::placeholder { color: var(--muted); }
+
 select option { background: var(--deep); color: var(--text); }
+
+/* Cor do calendário/clock no datetime-local */
+input[type="datetime-local"]::-webkit-calendar-picker-indicator,
+input[type="date"]::-webkit-calendar-picker-indicator {
+    filter: invert(0.6) sepia(1) saturate(2) hue-rotate(220deg);
+    cursor: pointer;
+}
 
 .field-error {
     font-size: .8rem;
@@ -671,13 +703,11 @@ footer p {
     <div class="d-flex align-items-center gap-2 flex-wrap">
 
         @guest
-            {{-- Visitante: apenas botão de login --}}
             <a class="btn menu-btn" href="{{ route('login') }}">Entrar</a>
         @endguest
 
         @auth
             @if(auth()->user()->tipo === 'adm')
-                {{-- Menu do Administrador: acesso total --}}
                 <a class="btn menu-btn me-1" href="{{ route('usuarios.index') }}">Usuários</a>
                 <a class="btn menu-btn me-1" href="{{ route('eventos.index') }}">Eventos</a>
                 <a class="btn menu-btn me-1" href="{{ route('livros.index') }}">Livros</a>
@@ -685,17 +715,14 @@ footer p {
                 <a class="btn menu-btn me-1" href="{{ route('compras.index') }}">Compras</a>
                 <a class="btn menu-btn me-1" href="{{ route('vendas.index') }}">Vendas</a>
             @else
-                {{-- Menu do Cliente: acesso limitado --}}
                 <a class="btn menu-btn me-1" href="{{ route('cliente.livros') }}">Livros</a>
                 <a class="btn menu-btn me-1" href="{{ route('cliente.eventos') }}">Eventos</a>
                 <a class="btn menu-btn me-1" href="{{ route('cliente.trocas') }}">Trocas</a>
                 <a class="btn menu-btn me-1" href="{{ route('cliente.perfil') }}">Meu Perfil</a>
             @endif
 
-            {{-- Nome do usuário logado (campo correto: 'nome') --}}
             <span class="user-greeting">{{ auth()->user()->nome }}</span>
 
-            {{-- Botão Sair --}}
             <form method="POST" action="{{ route('logout') }}" style="margin:0">
                 @csrf
                 <button type="submit" class="btn-logout">Sair</button>
@@ -738,6 +765,8 @@ footer p {
 function confirmarExclusao() {
     return confirm('Tem certeza que deseja excluir? Essa ação não pode ser desfeita.');
 }
+
+
 </script>
 
 </body>

@@ -25,16 +25,28 @@ Route::post('/cadastro', [UsuarioController::class, 'store'])->name('cadastro.st
 
 // Rotas do ADMIN
 Route::middleware(['auth', 'check.tipo:adm'])->group(function () {
-    Route::resource('livros', LivroController::class);
-    Route::resource('usuarios', UsuarioController::class);
-    Route::resource('compras', CompraLivroUsadoController::class);
-    Route::resource('eventos', EventoController::class);
-    Route::resource('inscricoes', InscricaoEventoController::class);
-    Route::get('inscricoes/evento/{evento}', [InscricaoEventoController::class, 'porEvento'])->name('inscricoes.porEvento');
-    Route::resource('itens-venda', ItemVendaController::class);
-    Route::resource('pagamentos', PagamentoController::class);
-    Route::resource('troca-livros', TrocaLivroController::class);
-    Route::resource('vendas', VendaController::class);
+
+    Route::get('livros/search', [LivroController::class, 'search'])->name('livros.search');
+    Route::resource('livros', LivroController::class)->except(['show']);
+
+    Route::resource('usuarios', UsuarioController::class)->except(['show']);
+
+    Route::get('compras/search', [CompraLivroUsadoController::class, 'search'])->name('compras.search');
+    Route::resource('compras', CompraLivroUsadoController::class)->except(['show']);
+
+    Route::get('eventos/search', [EventoController::class, 'search'])->name('eventos.search');
+    Route::resource('eventos', EventoController::class)->except(['show']);
+
+    Route::get('inscricoes/search', [InscricaoEventoController::class, 'search'])->name('inscricoes.search');
+    Route::get('inscricoes/evento/{evento}', [InscricaoEventoController::class, 'porEvento'])->name('inscricoes.porEvento'); // 👈 novo
+    Route::resource('inscricoes', InscricaoEventoController::class)->except(['show']);
+
+    Route::get('vendas/search', [VendaController::class, 'search'])->name('vendas.search');
+    Route::resource('vendas', VendaController::class)->except(['show']);
+
+    Route::resource('itens-venda', ItemVendaController::class)->except(['show']);
+    Route::resource('pagamentos', PagamentoController::class)->except(['show']);
+    Route::resource('troca-livros', TrocaLivroController::class)->except(['show']);
 });
 
 // Rotas do CLIENTE

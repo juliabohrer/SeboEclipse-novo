@@ -19,7 +19,7 @@
 </div>
 
 <div class="toolbar">
-    <div class="search-wrap">
+    <div class="search-wrap" style="max-width: 340px;">
         <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
         <input type="text" class="search-input" id="search-input" placeholder="Buscar por livro ou usuário…">
     </div>
@@ -45,7 +45,6 @@
                     <th class="col-antigo">Livro Antigo</th>
                     <th>Valor Pago</th>
                     <th>Status</th>
-                    <th>Disponível</th>
                     @if(auth()->user()->tipo === 'adm')
                         <th>Ações</th>
                     @endif
@@ -76,13 +75,6 @@
                                 };
                             @endphp
                             <span class="badge {{ $statusClass }}">{{ ucfirst($troca->status) }}</span>
-                        </td>
-                        <td>
-                            @if ($troca->disponivel)
-                                <span class="dot dot-yes">Sim</span>
-                            @else
-                                <span class="dot dot-no">Não</span>
-                            @endif
                         </td>
                         @if(auth()->user()->tipo === 'adm')
                             <td>

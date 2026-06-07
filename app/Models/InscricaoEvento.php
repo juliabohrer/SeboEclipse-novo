@@ -33,4 +33,5 @@ class InscricaoEvento extends Model
     {
         return $this->belongsTo(Evento::class, 'evento_id');
     }
+    
 }

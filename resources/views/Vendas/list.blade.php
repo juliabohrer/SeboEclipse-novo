@@ -16,6 +16,21 @@
 @if(session('success'))
     <div class="alert alert-success">{{ session('success') }}</div>
 @endif
+<div class="search-bar">
+    <form action="{{ route('vendas.search') }}" method="GET">
+        <input
+            type="text"
+            name="search"
+            placeholder="Pesquisar cliente, livro ou autor..."
+            value="{{ request('search') }}"
+            class="search-input"
+        >
+
+        <button type="submit" class="btn btn-primary">
+            Pesquisar
+        </button>
+    </form>
+</div>
 
 <div class="table-wrap">
 

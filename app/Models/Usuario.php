@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Facades\Storage;
 
 class Usuario extends Authenticatable
 {
@@ -21,6 +22,7 @@ class Usuario extends Authenticatable
         'email',
         'senha',
         'tipo',
+        'imagem',
     ];
 
     protected $hidden = [
@@ -31,7 +33,6 @@ class Usuario extends Authenticatable
         'data_nascimento' => 'date',
     ];
 
-    // Necessário para o Laravel usar 'senha' no lugar de 'password'
     public function getAuthPassword()
     {
         return $this->senha;
@@ -42,7 +43,14 @@ class Usuario extends Authenticatable
         return 'senha';
     }
 
-    // Relationships
+    public function getImagemUrlAttribute(): string
+    {
+        if ($this->imagem && Storage::disk('public')->exists($this->imagem)) {
+            return asset('storage/' . $this->imagem);
+        }
+        return asset('images/sem-imagem.png');
+    }
+
     public function trocas()
     {
         return $this->hasMany(TrocaLivro::class, 'usuario_id');

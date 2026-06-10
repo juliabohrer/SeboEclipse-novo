@@ -16,7 +16,7 @@ class DatabaseSeeder extends Seeder
             InscricaoEventoSeeder::class,
             VendaSeeder::class,
             ItemVendaSeeder::class,
-            CompraLivroUsadoSeeder::class,
+            CompraSeeder::class,
             PagamentoSeeder::class,
         ]);
     }

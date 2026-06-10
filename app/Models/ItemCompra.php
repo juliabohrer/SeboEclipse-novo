@@ -5,11 +5,11 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 
-class CompraLivroUsadoItem extends Model
+class ItemCompra extends Model
 {
     use HasFactory;
 
-    protected $table = 'compra_livro_usado_itens';
+    protected $table = 'item_compra';
 
     protected $fillable = [
         'compra_id',
@@ -30,7 +30,7 @@ class CompraLivroUsadoItem extends Model
 
     public function compra()
     {
-        return $this->belongsTo(CompraLivroUsado::class, 'compra_id');
+        return $this->belongsTo(Compra::class, 'compra_id');
     }
 
     public function livro()

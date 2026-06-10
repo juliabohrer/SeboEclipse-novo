@@ -31,7 +31,158 @@
     --rust:      #f87171;
     --rust-bg:   rgba(248,113,113,.08);
 }
+/* ── GRID ───────────────────────────────────────────────── */
+.usuarios-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 20px;
+}
 
+/* ── CARD ───────────────────────────────────────────────── */
+.usuario-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    transition: transform .18s, box-shadow .18s;
+}
+
+.usuario-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 32px rgba(0, 0, 0, .45);
+}
+
+/* ── COVER (foto) ───────────────────────────────────────── */
+.usuario-card__cover {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 1 / 1;
+    background: var(--overlay);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+}
+
+.usuario-card__cover img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+.usuario-card__initials {
+    width: 72px;
+    height: 72px;
+    border-radius: 50%;
+    background: rgba(167, 139, 250, .15);
+    border: 1px solid rgba(167, 139, 250, .35);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Cinzel', serif;
+    font-size: 24px;
+    font-weight: 700;
+    color: var(--purple-lt);
+}
+
+/* Badge tipo sobreposta na cover */
+.usuario-card__badge {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+}
+
+/* ── BODY ───────────────────────────────────────────────── */
+.usuario-card__body {
+    padding: 14px 16px 10px;
+    flex: 1;
+}
+
+.usuario-card__nome {
+    font-family: 'Cinzel', serif;
+    font-size: .88rem;
+    font-weight: 600;
+    color: var(--text);
+    margin: 0 0 2px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.usuario-card__email {
+    font-size: .82rem;
+    font-style: italic;
+    color: var(--muted);
+    margin: 0 0 12px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.usuario-card__divider {
+    height: 1px;
+    background: var(--border);
+    margin-bottom: 12px;
+}
+
+/* Lista de info (nascimento, telefone, endereço, cpf) */
+.usuario-card__info {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+}
+
+.usuario-card__info li {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    font-size: .84rem;
+    color: var(--text-dim);
+    line-height: 1.4;
+}
+
+.usuario-card__info li svg {
+    width: 14px;
+    height: 14px;
+    stroke: var(--muted);
+    fill: none;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    flex-shrink: 0;
+    margin-top: 2px;
+}
+
+/* ── FOOTER (ações) ─────────────────────────────────────── */
+.usuario-card__footer {
+    padding: 10px 16px 14px;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 6px;
+    border-top: 1px solid var(--border);
+    margin-top: 10px;
+}
+
+/* ── RESPONSIVE ─────────────────────────────────────────── */
+@media (max-width: 480px) {
+    .usuarios-grid {
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
+    }
+}
+
+@media (max-width: 340px) {
+    .usuarios-grid {
+        grid-template-columns: 1fr;
+    }
+}
 body {
     background: var(--void);
     font-family: 'Crimson Pro', Georgia, serif;
@@ -43,6 +194,146 @@ body {
     background: rgba(13,13,20,.95);
     border-bottom: 1px solid var(--border);
     backdrop-filter: blur(12px);
+}
+/* ── PAINEL NAV ─────────────────────────────────────────── */
+.painel-nav-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 16px;
+}
+
+.painel-nav-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 1.25rem;
+    text-decoration: none;
+    transition: transform .18s, box-shadow .18s, border-color .18s;
+}
+
+.painel-nav-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 28px rgba(0,0,0,.4);
+    border-color: var(--border-md);
+}
+
+.painel-nav-card__icon {
+    width: 52px;
+    height: 52px;
+    border-radius: 12px;
+    background: rgba(167,139,250,.1);
+    border: 1px solid rgba(167,139,250,.25);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.painel-nav-card__icon svg {
+    width: 24px;
+    height: 24px;
+    stroke: var(--purple-lt);
+}
+
+.painel-nav-card__content { flex: 1; }
+
+.painel-nav-card__titulo {
+    font-family: 'Cinzel', serif;
+    font-size: .85rem;
+    font-weight: 600;
+    color: var(--text);
+    margin: 0 0 4px;
+}
+
+.painel-nav-card__desc {
+    font-size: .82rem;
+    font-style: italic;
+    color: var(--muted);
+    margin: 0;
+    line-height: 1.4;
+}
+
+.painel-nav-card__arrow svg {
+    width: 18px;
+    height: 18px;
+    stroke: var(--muted);
+    transition: stroke .18s, transform .18s;
+}
+
+.painel-nav-card:hover .painel-nav-card__arrow svg {
+    stroke: var(--purple-lt);
+    transform: translateX(3px);
+}
+
+/* ── PAINEL RESUMO CARDS ────────────────────────────────── */
+.painel-resumo-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 14px;
+    margin-bottom: 1.5rem;
+}
+
+.painel-resumo-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 1.1rem 1.25rem;
+}
+
+.painel-resumo-card__label {
+    font-family: 'Cinzel', serif;
+    font-size: .6rem;
+    font-weight: 600;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin: 0 0 6px;
+}
+
+.painel-resumo-card__valor {
+    font-family: 'Cinzel', serif;
+    font-size: 1.6rem;
+    font-weight: 700;
+    margin: 0;
+    line-height: 1;
+}
+
+.painel-resumo-card__valor--purple { color: var(--purple-lt); }
+.painel-resumo-card__valor--gold   { color: var(--gold); }
+.painel-resumo-card__valor--green  { color: var(--green); }
+
+/* ── PAINEL CHARTS ──────────────────────────────────────── */
+.painel-card__titulo {
+    font-family: 'Cinzel', serif;
+    font-size: .78rem;
+    font-weight: 600;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    color: var(--text);
+    margin: 0 0 4px;
+}
+
+.painel-card__subtitulo {
+    font-size: .82rem;
+    font-style: italic;
+    color: var(--muted);
+    margin: 0 0 1.5rem;
+}
+
+.painel-card__chart { position: relative; width: 100%; }
+
+.painel-card__chart--pizza {
+    max-width: 480px;
+    margin: 0 auto;
+}
+
+/* ── RESPONSIVE ─────────────────────────────────────────── */
+@media (max-width: 600px) {
+    .painel-nav-grid { grid-template-columns: 1fr; }
+    .painel-resumo-grid { grid-template-columns: 1fr 1fr; }
 }
 
 .navbar-brand {
@@ -355,22 +646,33 @@ h2, h4 {
 
 .search-input {
     width: 100%;
-    padding: .55rem .9rem .55rem 2.2rem;
+    height: 48px;
+    padding: 0 18px;
     font-family: 'Crimson Pro', serif;
-    font-size: .95rem;
+    font-size: 1rem;
     background: var(--surface);
     border: 1px solid var(--border);
-    border-radius: 6px;
+    border-radius: 10px;
     outline: none;
     color: var(--text);
-    transition: border-color .2s, box-shadow .2s;
+    transition: all .2s;
 }
 
 .search-input::placeholder { color: var(--muted); }
 
 .search-input:focus {
-    border-color: rgba(167,139,250,.5);
-    box-shadow: 0 0 0 3px rgba(124,58,237,.1);
+    border-color: var(--gold);
+    box-shadow: 0 0 0 3px rgba(226,184,90,.15);
+}
+
+.search-bar {
+    margin-bottom: 1.5rem;
+}
+
+.search-bar form {
+    display: flex;
+    gap: .75rem;
+    align-items: center;
 }
 
 .count-badge {
@@ -528,6 +830,9 @@ input[type="number"],
 input[type="email"],
 input[type="password"],
 input[type="date"],
+input[type="datetime-local"],
+input[type="file"],
+textarea,
 select {
     width: 100%;
     padding: .65rem .9rem;
@@ -542,18 +847,36 @@ select {
     appearance: none;
 }
 
-input:focus, select:focus {
+textarea {
+    resize: vertical;
+    min-height: 100px;
+}
+
+input:focus,
+select:focus,
+textarea:focus {
     border-color: rgba(167,139,250,.5);
     box-shadow: 0 0 0 3px rgba(124,58,237,.1);
 }
 
-input.is-invalid, select.is-invalid {
+input.is-invalid,
+select.is-invalid,
+textarea.is-invalid {
     border-color: rgba(248,113,113,.5);
     box-shadow: 0 0 0 3px rgba(248,113,113,.08);
 }
 
-input::placeholder { color: var(--muted); }
+input::placeholder,
+textarea::placeholder { color: var(--muted); }
+
 select option { background: var(--deep); color: var(--text); }
+
+/* Cor do calendário/clock no datetime-local */
+input[type="datetime-local"]::-webkit-calendar-picker-indicator,
+input[type="date"]::-webkit-calendar-picker-indicator {
+    filter: invert(0.6) sepia(1) saturate(2) hue-rotate(220deg);
+    cursor: pointer;
+}
 
 .field-error {
     font-size: .8rem;
@@ -671,31 +994,26 @@ footer p {
     <div class="d-flex align-items-center gap-2 flex-wrap">
 
         @guest
-            {{-- Visitante: apenas botão de login --}}
             <a class="btn menu-btn" href="{{ route('login') }}">Entrar</a>
         @endguest
 
         @auth
             @if(auth()->user()->tipo === 'adm')
-                {{-- Menu do Administrador: acesso total --}}
                 <a class="btn menu-btn me-1" href="{{ route('usuarios.index') }}">Usuários</a>
                 <a class="btn menu-btn me-1" href="{{ route('eventos.index') }}">Eventos</a>
                 <a class="btn menu-btn me-1" href="{{ route('livros.index') }}">Livros</a>
                 <a class="btn menu-btn me-1" href="{{ route('troca-livros.index') }}">Trocas</a>
                 <a class="btn menu-btn me-1" href="{{ route('compras.index') }}">Compras</a>
                 <a class="btn menu-btn me-1" href="{{ route('vendas.index') }}">Vendas</a>
+                <a class="btn menu-btn me-1" href="{{ route('painel.index') }}">Painel</a>
             @else
-                {{-- Menu do Cliente: acesso limitado --}}
                 <a class="btn menu-btn me-1" href="{{ route('cliente.livros') }}">Livros</a>
                 <a class="btn menu-btn me-1" href="{{ route('cliente.eventos') }}">Eventos</a>
-                <a class="btn menu-btn me-1" href="{{ route('cliente.trocas') }}">Trocas</a>
                 <a class="btn menu-btn me-1" href="{{ route('cliente.perfil') }}">Meu Perfil</a>
             @endif
 
-            {{-- Nome do usuário logado (campo correto: 'nome') --}}
             <span class="user-greeting">{{ auth()->user()->nome }}</span>
 
-            {{-- Botão Sair --}}
             <form method="POST" action="{{ route('logout') }}" style="margin:0">
                 @csrf
                 <button type="submit" class="btn-logout">Sair</button>
@@ -738,6 +1056,8 @@ footer p {
 function confirmarExclusao() {
     return confirm('Tem certeza que deseja excluir? Essa ação não pode ser desfeita.');
 }
+
+
 </script>
 
 </body>

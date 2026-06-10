@@ -19,11 +19,12 @@
 </div>
 
 <div class="toolbar">
-    <div class="search-wrap">
+    <form method="GET" action="{{ route('troca-livros.search') }}" class="search-wrap" style="max-width: 340px;">
         <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-        <input type="text" class="search-input" id="search-input" placeholder="Buscar por livro ou usuário…">
-    </div>
-    <span class="count-badge" id="count-badge">
+        <input type="text" name="search" class="search-input" placeholder="Buscar por livro ou usuário…"
+               value="{{ request('search') }}" autocomplete="off">
+    </form>
+    <span class="count-badge">
         {{ $trocas->count() }} {{ $trocas->count() === 1 ? 'troca' : 'trocas' }}
     </span>
 </div>
@@ -45,7 +46,6 @@
                     <th class="col-antigo">Livro Antigo</th>
                     <th>Valor Pago</th>
                     <th>Status</th>
-                    <th>Disponível</th>
                     @if(auth()->user()->tipo === 'adm')
                         <th>Ações</th>
                     @endif
@@ -53,7 +53,7 @@
             </thead>
             <tbody>
                 @foreach ($trocas as $troca)
-                    <tr data-search="{{ strtolower(optional($troca->usuario)->nome . ' ' . optional($troca->livroNovo)->titulo . ' ' . optional($troca->livroAntigo)->titulo) }}">
+                    <tr>
                         <td class="td-nome">
                             <strong>{{ optional($troca->usuario)->nome ?? '—' }}</strong>
                         </td>
@@ -77,13 +77,6 @@
                             @endphp
                             <span class="badge {{ $statusClass }}">{{ ucfirst($troca->status) }}</span>
                         </td>
-                        <td>
-                            @if ($troca->disponivel)
-                                <span class="dot dot-yes">Sim</span>
-                            @else
-                                <span class="dot dot-no">Não</span>
-                            @endif
-                        </td>
                         @if(auth()->user()->tipo === 'adm')
                             <td>
                                 <div class="actions">
@@ -103,24 +96,5 @@
         </table>
     @endif
 </div>
-
-<script>
-    const input = document.getElementById('search-input');
-    const badge = document.getElementById('count-badge');
-    const rows  = document.querySelectorAll('#trocas-table tbody tr');
-
-    if (input) {
-        input.addEventListener('input', () => {
-            const term = input.value.toLowerCase().trim();
-            let visible = 0;
-            rows.forEach(row => {
-                const match = !term || (row.dataset.search || '').includes(term);
-                row.style.display = match ? '' : 'none';
-                if (match) visible++;
-            });
-            if (badge) badge.textContent = `${visible} ${visible === 1 ? 'troca' : 'trocas'}`;
-        });
-    }
-</script>
 
 @endsection

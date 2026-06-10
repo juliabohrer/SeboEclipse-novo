@@ -26,25 +26,72 @@ class TrocaLivroController extends Controller
         return view('troca-livros.list', compact('trocas'));
     }
 
+    public function search(Request $request)
+    {
+        $search = trim($request->input('search', ''));
+
+        $query = TrocaLivro::with(['livroNovo', 'livroAntigo', 'usuario']);
+
+        if ($search) {
+            $query->where(function ($q) use ($search) {
+                $q->whereHas('usuario', function ($u) use ($search) {
+                    $u->where('nome', 'like', "%{$search}%");
+                })
+                ->orWhereHas('livroNovo', function ($l) use ($search) {
+                    $l->where('titulo', 'like', "%{$search}%")
+                      ->orWhere('autor', 'like', "%{$search}%");
+                })
+                ->orWhereHas('livroAntigo', function ($l) use ($search) {
+                    $l->where('titulo', 'like', "%{$search}%")
+                      ->orWhere('autor', 'like', "%{$search}%");
+                })
+                ->orWhere('status', 'like', "%{$search}%");
+            });
+        }
+
+        $trocas = $query->get();
+        return view('troca-livros.list', compact('trocas'));
+    }
+
     public function create()
     {
-        $livros   = Livro::where('disponivel', true)->get();
-        $usuarios = Usuario::all();
-        return view('troca-livros.form', compact('livros', 'usuarios'));
+        $livrosDisponiveis = Livro::where('disponivel', true)->get();
+        $livrosCliente     = Livro::where('disponivel', false)->get();
+        $usuarios          = Usuario::all();
+
+        return view('troca-livros.form', compact('livrosDisponiveis', 'livrosCliente', 'usuarios'));
     }
 
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'livro_novo_id'   => 'required|exists:livros,id|different:livro_antigo_id',
-            'livro_antigo_id' => 'required|exists:livros,id',
-            'usuario_id'      => 'required|exists:usuarios,id',
-            'valor_pago'      => 'required|numeric|min:0',
-            'disponivel'      => 'boolean',
-            'status'          => 'required|in:pendente,aprovada,recusada,concluida',
+            'livro_novo_id'       => 'required|exists:livros,id',
+            'livro_antigo_titulo' => 'required|string|max:255',
+            'livro_antigo_autor'  => 'required|string|max:255',
+            'usuario_id'          => 'required|exists:usuarios,id',
+            'valor_pago'          => 'required|numeric|min:0',
+            'status'              => 'required|in:pendente,aprovada,recusada,concluida',
         ]);
 
-        TrocaLivro::create($validated);
+        $livroAntigo = Livro::create([
+            'titulo'             => $validated['livro_antigo_titulo'],
+            'autor'              => $validated['livro_antigo_autor'],
+            'editora'            => 'Desconhecida',
+            'disponivel'         => true,
+            'preco'              => 0,
+            'genero'             => 'A definir',
+            'estado_conservacao' => 'usado',
+        ]);
+
+        TrocaLivro::create([
+            'livro_novo_id'   => $validated['livro_novo_id'],
+            'livro_antigo_id' => $livroAntigo->id,
+            'usuario_id'      => $validated['usuario_id'],
+            'valor_pago'      => $validated['valor_pago'],
+            'status'          => $validated['status'],
+        ]);
+
+        Livro::where('id', $validated['livro_novo_id'])->update(['disponivel' => false]);
 
         return redirect()->route('troca-livros.index')
                          ->with('success', 'Troca registrada com sucesso!');
@@ -52,23 +99,42 @@ class TrocaLivroController extends Controller
 
     public function edit(TrocaLivro $trocaLivro)
     {
-        $livros   = Livro::all();
-        $usuarios = Usuario::all();
-        return view('troca-livros.form', compact('trocaLivro', 'livros', 'usuarios'));
+        $livrosDisponiveis = Livro::where('disponivel', true)->get();
+        $usuarios          = Usuario::all();
+        return view('troca-livros.form', compact('trocaLivro', 'livrosDisponiveis', 'usuarios'));
     }
 
     public function update(Request $request, TrocaLivro $trocaLivro)
     {
         $validated = $request->validate([
-            'livro_novo_id'   => 'required|exists:livros,id|different:livro_antigo_id',
-            'livro_antigo_id' => 'required|exists:livros,id',
-            'usuario_id'      => 'required|exists:usuarios,id',
-            'valor_pago'      => 'required|numeric|min:0',
-            'disponivel'      => 'boolean',
-            'status'          => 'required|in:pendente,aprovada,recusada,concluida',
+            'livro_novo_id'       => 'required|exists:livros,id',
+            'livro_antigo_titulo' => 'required|string|max:255',
+            'livro_antigo_autor'  => 'required|string|max:255',
+            'usuario_id'          => 'required|exists:usuarios,id',
+            'valor_pago'          => 'required|numeric|min:0',
+            'status'              => 'required|in:pendente,aprovada,recusada,concluida',
         ]);
 
-        $trocaLivro->update($validated);
+        Livro::where('id', $trocaLivro->livro_antigo_id)->update([
+            'titulo' => $validated['livro_antigo_titulo'],
+            'autor'  => $validated['livro_antigo_autor'],
+        ]);
+
+        if ($trocaLivro->livro_novo_id !== (int) $validated['livro_novo_id']) {
+            Livro::where('id', $trocaLivro->livro_novo_id)->update(['disponivel' => true]);
+            Livro::where('id', $validated['livro_novo_id'])->update(['disponivel' => false]);
+        }
+
+        if (in_array($validated['status'], ['concluida', 'recusada'])) {
+            Livro::where('id', $validated['livro_novo_id'])->update(['disponivel' => true]);
+        }
+
+        $trocaLivro->update([
+            'livro_novo_id' => $validated['livro_novo_id'],
+            'usuario_id'    => $validated['usuario_id'],
+            'valor_pago'    => $validated['valor_pago'],
+            'status'        => $validated['status'],
+        ]);
 
         return redirect()->route('troca-livros.index')
                          ->with('success', 'Troca atualizada com sucesso!');
@@ -76,6 +142,9 @@ class TrocaLivroController extends Controller
 
     public function destroy(TrocaLivro $trocaLivro)
     {
+        Livro::where('id', $trocaLivro->livro_novo_id)
+             ->update(['disponivel' => true]);
+
         $trocaLivro->delete();
 
         return redirect()->route('troca-livros.index')

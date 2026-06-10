@@ -18,6 +18,25 @@
 
 @section('content')
 
+<style>
+    .field-error {
+        color: #e53e3e;
+        font-size: 0.82rem;
+        margin-top: 4px;
+        display: flex;
+        align-items: center;
+        gap: 4px;
+    }
+    .field-error::before {
+        content: '⚠ ';
+    }
+    input.is-invalid,
+    select.is-invalid {
+        border-color: #e53e3e !important;
+        outline-color: #e53e3e;
+    }
+</style>
+
 <div class="page-header">
     <p class="tag">{{ $editing ? 'Atualizar registro' : 'Novo registro' }}</p>
     <h1>{{ $editing ? 'Editar Usuário' : 'Cadastrar Usuário' }}</h1>
@@ -35,7 +54,7 @@
 @endif
 
 <div class="card">
-    <form method="POST" action="{{ $action }}">
+    <form method="POST" action="{{ $action }}" enctype="multipart/form-data">
         @csrf
         @if($editing && $isAdm) @method('PUT') @endif
         @if($isPerfil) @method('PUT') @endif
@@ -44,6 +63,31 @@
             <div class="form-grid">
 
                 <div class="section-divider full"><span>Dados Pessoais</span></div>
+
+                {{-- Foto de perfil --}}
+                <div class="form-group full">
+                    <label for="imagem">Foto de Perfil</label>
+
+                    <input
+                        type="file"
+                        id="imagem"
+                        name="imagem"
+                        accept="image/png,image/jpeg,image/jpg,image/webp"
+                    >
+
+                    <div style="margin-top: 10px;">
+                        <img
+                            src="{{ $editing ? $usuario->imagem_url : asset('images/sem-imagem.png') }}"
+                            alt="Foto do usuário"
+                            width="100"
+                            style="border-radius:50%; border:1px solid #ddd; object-fit:cover; aspect-ratio:1/1;"
+                        >
+                    </div>
+
+                    @error('imagem')
+                        <span class="field-error">{{ $message }}</span>
+                    @enderror
+                </div>
 
                 <div class="form-group full">
                     <label for="nome">Nome Completo</label>
@@ -125,11 +169,10 @@
                         class="{{ $errors->has('senha') ? 'is-invalid' : '' }}">
                     @error('senha')
                         <span class="field-error">{{ $message }}</span>
-                    @else
-                        @if ($editing)
-                            <span class="field-hint">Deixe em branco para não alterar</span>
-                        @endif
                     @enderror
+                    @if ($editing && !$errors->has('senha'))
+                        <span class="field-hint">Deixe em branco para não alterar</span>
+                    @endif
                 </div>
 
                 <div class="form-group">

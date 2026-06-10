@@ -2,14 +2,14 @@
 
 namespace Database\Factories;
 
-use App\Models\CompraLivroUsado;
-use App\Models\CompraLivroUsadoItem;
+use App\Models\Compra;
+use App\Models\CompraItem;
 use App\Models\Livro;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
-class CompraLivroUsadoItemFactory extends Factory
+class CompraItemFactory extends Factory
 {
-    protected $model = CompraLivroUsadoItem::class;
+    protected $model = CompraItem::class;
 
     public function definition(): array
     {
@@ -17,8 +17,8 @@ class CompraLivroUsadoItemFactory extends Factory
         $valorPago  = $this->faker->randomFloat(2, 5, $precoVenda);
 
         return [
-            'compra_id'          => CompraLivroUsado::inRandomOrder()->first()?->id
-                                    ?? CompraLivroUsado::factory(),
+            'compra_id'          => Compra::inRandomOrder()->first()?->id
+                                    ?? Compra::factory(),
             'livro_id'           => Livro::inRandomOrder()->first()?->id,
             'titulo'             => $this->faker->sentence(3),
             'autor'              => $this->faker->name(),

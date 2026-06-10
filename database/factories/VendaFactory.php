@@ -11,7 +11,7 @@ class VendaFactory extends Factory
     {
         return [
             'usuario_id'  => Usuario::inRandomOrder()->first()->id,
-            'data_venda'  => $this->faker->date(),
+            'data_venda'  => $this->faker->dateTimeBetween('2025-01-01', 'now'),
             'valor_total' => $this->faker->randomFloat(2, 10, 500),
         ];
     }

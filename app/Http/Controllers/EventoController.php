@@ -6,13 +6,17 @@ use App\Models\Evento;
 use App\Models\Usuario;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
+use Illuminate\Support\Facades\Storage;
 
 class EventoController extends Controller
 {
     public function __construct()
     {
         $this->middleware(function ($request, $next) {
-            if (in_array($request->route()->getActionMethod(), ['create', 'store', 'edit', 'update', 'destroy'])) {
+            if (in_array(
+                $request->route()->getActionMethod(),
+                ['create', 'store', 'edit', 'update', 'destroy']
+            )) {
                 abort_if(auth()->user()->tipo !== 'adm', 403);
             }
             return $next($request);
@@ -22,6 +26,25 @@ class EventoController extends Controller
     public function index()
     {
         $eventos = Evento::with(['usuario', 'inscricoes.usuario'])->get();
+        return view('eventos.list', compact('eventos'));
+    }
+
+    public function search(Request $request)
+    {
+        $search = trim($request->input('search', ''));
+
+        $query = Evento::with(['usuario', 'inscricoes.usuario']);
+
+        if ($search) {
+            $query->where(function ($q) use ($search) {
+                $q->where('titulo', 'like', "%{$search}%")
+                  ->orWhereHas('usuario', function ($u) use ($search) {
+                      $u->where('nome', 'like', "%{$search}%");
+                  });
+            });
+        }
+
+        $eventos = $query->get();
         return view('eventos.list', compact('eventos'));
     }
 
@@ -37,16 +60,30 @@ class EventoController extends Controller
             'usuario_id'       => 'required|exists:usuarios,id',
             'titulo'           => 'required|string|max:255',
             'descricao'        => 'required|string',
+            'imagem'           => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
             'data_hora_inicio' => 'required|date',
             'data_hora_fim'    => 'required|date|after:data_hora_inicio',
             'limite_pessoas'   => 'required|integer|min:1',
             'valor_ingresso'   => 'required|numeric|min:0',
+        ], [
+            'usuario_id.required'       => 'Selecione um organizador.',
+            'titulo.required'           => 'O título é obrigatório.',
+            'descricao.required'        => 'A descrição é obrigatória.',
+            'data_hora_inicio.required' => 'A data de início é obrigatória.',
+            'data_hora_fim.required'    => 'A data de término é obrigatória.',
+            'limite_pessoas.required'   => 'O limite de pessoas é obrigatório.',
+            'valor_ingresso.required'   => 'O valor do ingresso é obrigatório.',
         ]);
+
+        if ($request->hasFile('imagem')) {
+            $validated['imagem'] = $request->file('imagem')->store('eventos', 'public');
+        }
 
         Evento::create($validated);
 
-        return redirect()->route('eventos.index')
-                         ->with('success', 'Evento criado com sucesso!');
+        return redirect()
+            ->route('eventos.index')
+            ->with('success', 'Evento criado com sucesso!');
     }
 
     public function edit(Evento $evento)
@@ -61,23 +98,51 @@ class EventoController extends Controller
             'usuario_id'       => 'required|exists:usuarios,id',
             'titulo'           => 'required|string|max:255',
             'descricao'        => 'required|string',
+            'imagem'           => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
             'data_hora_inicio' => 'required|date',
             'data_hora_fim'    => 'required|date|after:data_hora_inicio',
             'limite_pessoas'   => 'required|integer|min:1',
             'valor_ingresso'   => 'required|numeric|min:0',
+        ], [
+            'usuario_id.required'       => 'Selecione um organizador.',
+            'titulo.required'           => 'O título é obrigatório.',
+            'descricao.required'        => 'A descrição é obrigatória.',
+            'data_hora_inicio.required' => 'A data de início é obrigatória.',
+            'data_hora_fim.required'    => 'A data de término é obrigatória.',
+            'limite_pessoas.required'   => 'O limite de pessoas é obrigatório.',
+            'valor_ingresso.required'   => 'O valor do ingresso é obrigatório.',
         ]);
+
+        if ($request->hasFile('imagem')) {
+            if ($evento->imagem && Storage::disk('public')->exists($evento->imagem)) {
+                Storage::disk('public')->delete($evento->imagem);
+            }
+            $validated['imagem'] = $request->file('imagem')->store('eventos', 'public');
+        }
 
         $evento->update($validated);
 
-        return redirect()->route('eventos.index')
-                         ->with('success', 'Evento atualizado com sucesso!');
+        return redirect()
+            ->route('eventos.index')
+            ->with('success', 'Evento atualizado com sucesso!');
     }
 
     public function destroy(Evento $evento)
     {
+        if ($evento->imagem && Storage::disk('public')->exists($evento->imagem)) {
+            Storage::disk('public')->delete($evento->imagem);
+        }
+
         $evento->delete();
 
-        return redirect()->route('eventos.index')
-                         ->with('success', 'Evento removido com sucesso!');
+        return redirect()
+            ->route('eventos.index')
+            ->with('success', 'Evento removido com sucesso!');
+    }
+
+    public function porEvento(Evento $evento)
+    {
+        $inscricoes = $evento->inscricoes()->with('usuario')->get();
+        return view('inscricoes.porEvento', compact('evento', 'inscricoes'));
     }
 }

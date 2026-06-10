@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 use App\Models\Usuario;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Routing\Controller;
 
 class UsuarioController extends Controller
@@ -31,6 +32,7 @@ class UsuarioController extends Controller
             'telefone'        => 'required|string|max:20',
             'email'           => 'required|email|unique:usuarios,email',
             'senha'           => 'required|string|min:6|confirmed',
+            'imagem'          => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048', 
             'tipo'            => $isPublico ? 'nullable' : 'required|in:adm,cliente',
         ]);
 
@@ -38,6 +40,11 @@ class UsuarioController extends Controller
 
         if ($isPublico) {
             $validated['tipo'] = 'cliente';
+        }
+
+        // ← adicionado
+        if ($request->hasFile('imagem')) {
+            $validated['imagem'] = $request->file('imagem')->store('usuarios', 'public');
         }
 
         Usuario::create($validated);
@@ -66,6 +73,7 @@ class UsuarioController extends Controller
             'telefone'        => 'required|string|max:20',
             'email'           => 'required|email|unique:usuarios,email,' . $usuario->id,
             'senha'           => 'nullable|string|min:6|confirmed',
+            'imagem'          => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048', 
             'tipo'            => 'required|in:adm,cliente',
         ]);
 
@@ -75,13 +83,21 @@ class UsuarioController extends Controller
             unset($validated['senha']);
         }
 
+        // ← adicionado
+        if ($request->hasFile('imagem')) {
+            if ($usuario->imagem && Storage::disk('public')->exists($usuario->imagem)) {
+                Storage::disk('public')->delete($usuario->imagem);
+            }
+            $validated['imagem'] = $request->file('imagem')->store('usuarios', 'public');
+        }
+
         $usuario->update($validated);
 
         return redirect()->route('usuarios.index')
                          ->with('success', 'Usuário atualizado com sucesso!');
     }
 
-    // ── CLIENTE: editar o próprio perfil ──────────────────────────────────────
+    // ── CLIENTE: editar o próprio perfil ─────────────────────────────────────
 
     public function editPerfil()
     {
@@ -101,12 +117,21 @@ class UsuarioController extends Controller
             'telefone'        => 'required|string|max:20',
             'email'           => 'required|email|unique:usuarios,email,' . $usuario->id,
             'senha'           => 'nullable|string|min:6|confirmed',
+            'imagem'          => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048', 
         ]);
 
         if (!empty($validated['senha'])) {
             $validated['senha'] = Hash::make($validated['senha']);
         } else {
             unset($validated['senha']);
+        }
+
+        // ← adicionado
+        if ($request->hasFile('imagem')) {
+            if ($usuario->imagem && Storage::disk('public')->exists($usuario->imagem)) {
+                Storage::disk('public')->delete($usuario->imagem);
+            }
+            $validated['imagem'] = $request->file('imagem')->store('usuarios', 'public');
         }
 
         $usuario->update($validated);
@@ -117,9 +142,14 @@ class UsuarioController extends Controller
 
     public function destroy(Usuario $usuario)
     {
+        // ← adicionado
+        if ($usuario->imagem && Storage::disk('public')->exists($usuario->imagem)) {
+            Storage::disk('public')->delete($usuario->imagem);
+        }
+
         $usuario->delete();
 
         return redirect()->route('usuarios.index')
                          ->with('success', 'Usuário removido com sucesso!');
     }
-}
+}   

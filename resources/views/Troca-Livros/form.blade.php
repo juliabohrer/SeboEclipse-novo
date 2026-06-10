@@ -52,12 +52,20 @@
 
                 <div class="section-divider full"><span>Livros</span></div>
 
+                {{-- Livro Novo: somente disponíveis (do acervo) --}}
                 <div class="form-group">
-                    <label for="livro_novo_id">Livro Novo (recebe)</label>
+                    <label for="livro_novo_id">Livro Novo (cliente recebe)</label>
                     <select id="livro_novo_id" name="livro_novo_id"
                         class="{{ $errors->has('livro_novo_id') ? 'is-invalid' : '' }}">
                         <option value="" disabled {{ old('livro_novo_id', $trocaLivro->livro_novo_id ?? '') === '' ? 'selected' : '' }}>Selecione…</option>
-                        @foreach ($livros as $livro)
+
+                        @if ($editing && $trocaLivro->livroNovo && !$trocaLivro->livroNovo->disponivel)
+                            <option value="{{ $trocaLivro->livroNovo->id }}" selected>
+                                {{ $trocaLivro->livroNovo->titulo }} — {{ $trocaLivro->livroNovo->autor }} (atual)
+                            </option>
+                        @endif
+
+                        @foreach ($livrosDisponiveis as $livro)
                             <option value="{{ $livro->id }}"
                                 {{ old('livro_novo_id', $trocaLivro->livro_novo_id ?? '') == $livro->id ? 'selected' : '' }}>
                                 {{ $livro->titulo }} — {{ $livro->autor }}
@@ -67,19 +75,23 @@
                     @error('livro_novo_id') <span class="field-error">{{ $message }}</span> @enderror
                 </div>
 
+                {{-- Livro Antigo: cliente traz de fora, digitado manualmente --}}
                 <div class="form-group">
-                    <label for="livro_antigo_id">Livro Antigo (entrega)</label>
-                    <select id="livro_antigo_id" name="livro_antigo_id"
-                        class="{{ $errors->has('livro_antigo_id') ? 'is-invalid' : '' }}">
-                        <option value="" disabled {{ old('livro_antigo_id', $trocaLivro->livro_antigo_id ?? '') === '' ? 'selected' : '' }}>Selecione…</option>
-                        @foreach ($livros as $livro)
-                            <option value="{{ $livro->id }}"
-                                {{ old('livro_antigo_id', $trocaLivro->livro_antigo_id ?? '') == $livro->id ? 'selected' : '' }}>
-                                {{ $livro->titulo }} — {{ $livro->autor }}
-                            </option>
-                        @endforeach
-                    </select>
-                    @error('livro_antigo_id') <span class="field-error">{{ $message }}</span> @enderror
+                    <label for="livro_antigo_titulo">Livro Antigo — Título (cliente entrega)</label>
+                    <input type="text" id="livro_antigo_titulo" name="livro_antigo_titulo"
+                        value="{{ old('livro_antigo_titulo', $trocaLivro->livroAntigo->titulo ?? '') }}"
+                        placeholder="Ex: Harry Potter e a Pedra Filosofal"
+                        class="{{ $errors->has('livro_antigo_titulo') ? 'is-invalid' : '' }}">
+                    @error('livro_antigo_titulo') <span class="field-error">{{ $message }}</span> @enderror
+                </div>
+
+                <div class="form-group">
+                    <label for="livro_antigo_autor">Livro Antigo — Autor</label>
+                    <input type="text" id="livro_antigo_autor" name="livro_antigo_autor"
+                        value="{{ old('livro_antigo_autor', $trocaLivro->livroAntigo->autor ?? '') }}"
+                        placeholder="Ex: J.K. Rowling"
+                        class="{{ $errors->has('livro_antigo_autor') ? 'is-invalid' : '' }}">
+                    @error('livro_antigo_autor') <span class="field-error">{{ $message }}</span> @enderror
                 </div>
 
                 <div class="section-divider full"><span>Condições</span></div>
@@ -106,18 +118,6 @@
                         @endforeach
                     </select>
                     @error('status') <span class="field-error">{{ $message }}</span> @enderror
-                </div>
-
-                <div class="section-divider full"><span>Disponibilidade</span></div>
-
-                <div class="form-group full">
-                    <label class="checkbox-row" for="disponivel">
-                        <input type="hidden" name="disponivel" value="0">
-                        <input type="checkbox" id="disponivel" name="disponivel" value="1"
-                            {{ old('disponivel', $trocaLivro->disponivel ?? true) ? 'checked' : '' }}>
-                        <span class="cb-label">Troca disponível / ativa</span>
-                        <span class="cb-hint">Desmarque para desativar esta troca</span>
-                    </label>
                 </div>
 
             </div>

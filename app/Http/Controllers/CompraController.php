@@ -2,30 +2,48 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\CompraLivroUsado;
-use App\Models\CompraLivroUsadoItem;
+use App\Models\Compra;
+use App\Models\ItemCompra;
 use App\Models\Usuario;
 use App\Models\Livro;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
 use Illuminate\Support\Facades\DB;
 
-class CompraLivroUsadoController extends Controller
+class CompraController extends Controller
 {
     public function index()
     {
-        $compras = CompraLivroUsado::with([
-            'usuario',
-            'itens'
-        ])->get();
+        $compras = Compra::with(['usuario', 'itens'])->get();
+        return view('compras.list', compact('compras'));
+    }
 
+    public function search(Request $request)
+    {
+        $search = trim($request->input('search', ''));
+
+        $query = Compra::with(['usuario', 'itens']);
+
+        if ($search) {
+            $query->where(function ($q) use ($search) {
+                $q->whereHas('usuario', function ($u) use ($search) {
+                    $u->where('nome', 'like', "%{$search}%");
+                })
+                ->orWhere('fornecedor', 'like', "%{$search}%")
+                ->orWhereHas('itens', function ($i) use ($search) {
+                    $i->where('titulo', 'like', "%{$search}%")
+                      ->orWhere('autor', 'like', "%{$search}%");
+                });
+            });
+        }
+
+        $compras = $query->get();
         return view('compras.list', compact('compras'));
     }
 
     public function create()
     {
         $usuarios = Usuario::all();
-
         return view('compras.form', compact('usuarios'));
     }
 
@@ -46,7 +64,7 @@ class CompraLivroUsadoController extends Controller
         ]);
 
         DB::transaction(function () use ($request) {
-            $compra = CompraLivroUsado::create([
+            $compra = Compra::create([
                 'usuario_id'  => $request->usuario_id,
                 'fornecedor'  => $request->fornecedor,
                 'data'        => $request->data,
@@ -64,7 +82,7 @@ class CompraLivroUsadoController extends Controller
                     'disponivel'         => true,
                 ]);
 
-                CompraLivroUsadoItem::create([
+                ItemCompra::create([
                     'compra_id'          => $compra->id,
                     'livro_id'           => $livro->id,
                     'titulo'             => $item['titulo'],
@@ -83,15 +101,14 @@ class CompraLivroUsadoController extends Controller
             ->with('success', 'Compra registrada e livros adicionados ao acervo!');
     }
 
-    public function edit(CompraLivroUsado $compra)
+    public function edit(Compra $compra)
     {
         $usuarios = Usuario::all();
         $compra->load('itens');
-
         return view('compras.form', compact('compra', 'usuarios'));
     }
 
-    public function update(Request $request, CompraLivroUsado $compra)
+    public function update(Request $request, Compra $compra)
     {
         $request->validate([
             'usuario_id'                 => 'required|exists:usuarios,id',
@@ -133,7 +150,7 @@ class CompraLivroUsadoController extends Controller
                     'disponivel'         => true,
                 ]);
 
-                CompraLivroUsadoItem::create([
+                ItemCompra::create([
                     'compra_id'          => $compra->id,
                     'livro_id'           => $livro->id,
                     'titulo'             => $item['titulo'],
@@ -152,7 +169,7 @@ class CompraLivroUsadoController extends Controller
             ->with('success', 'Compra atualizada com sucesso!');
     }
 
-    public function destroy(CompraLivroUsado $compra)
+    public function destroy(Compra $compra)
     {
         DB::transaction(function () use ($compra) {
             foreach ($compra->itens as $item) {

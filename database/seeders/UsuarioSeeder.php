@@ -10,19 +10,19 @@ class UsuarioSeeder extends Seeder
 {
     public function run(): void
     {
-        // Admin fixo para testes
+        // Admin fixo
         Usuario::create([
             'nome'            => 'Admin',
+            'email'           => 'admin@eclipse.com',
+            'senha'           => Hash::make('admin123'),
+            'tipo'            => 'adm',
+            'cpf'             => '999.999.999-99',
+            'telefone'        => '(00) 00000-0000',
             'data_nascimento' => '1990-01-01',
-            'cpf'             => '000.000.000-00',
-            'endereco'        => 'Rua Admin, 1',
-            'telefone'        => '(41) 99999-9999',
-            'email'           => 'admin@sebo.com',
-            'senha'           => Hash::make('password'),
-            'tipo'            => 'admin',
+            'endereco'        => 'Endereço padrão',
         ]);
 
-        // Clientes aleatórios
+        // 10 clientes aleatórios
         Usuario::factory()->count(10)->create(['tipo' => 'cliente']);
     }
 }

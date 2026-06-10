@@ -23,6 +23,32 @@ class VendaController extends Controller
         return view('vendas.list', compact('vendas'));
     }
 
+    public function search(Request $request)
+    {
+        $search = trim($request->input('search', ''));
+
+        $query = Venda::with(['usuario', 'itensVenda.livro', 'pagamento']);
+
+        if ($search) {
+            foreach (explode(' ', $search) as $palavra) {
+                if ($palavra === '') continue;
+                $query->where(function ($q) use ($palavra) {
+                    $q->whereHas('usuario', function ($u) use ($palavra) {
+                        $u->where('nome', 'like', "%{$palavra}%");
+                    })
+                    ->orWhereHas('itensVenda.livro', function ($l) use ($palavra) {
+                        $l->where('titulo', 'like', "%{$palavra}%")
+                          ->orWhere('autor', 'like', "%{$palavra}%");
+                    });
+                });
+            }
+        }
+
+        $vendas = $query->get();
+
+        return view('vendas.list', compact('vendas'));
+    }
+
     public function create()
     {
         $usuarios = Usuario::all();
@@ -34,15 +60,15 @@ class VendaController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'usuario_id'       => 'required|exists:usuarios,id',
-            'data_venda'       => 'required|date',
-            'valor_total'      => 'required|numeric|min:0',
-            'itens'            => 'required|array|min:1',
+            'usuario_id'             => 'required|exists:usuarios,id',
+            'data_venda'             => 'required|date',
+            'valor_total'            => 'required|numeric|min:0',
+            'itens'                  => 'required|array|min:1',
             'itens.*.livro_id'       => 'required|exists:livros,id',
             'itens.*.quantidade'     => 'required|integer|min:1',
             'itens.*.valor_unitario' => 'required|numeric|min:0',
-            'forma_pagamento'  => 'nullable|string|max:255',
-            'status_pagamento' => 'nullable|string|max:255',
+            'forma_pagamento'        => 'nullable|string|max:255',
+            'status_pagamento'       => 'nullable|string|max:255',
         ]);
 
         $venda = Venda::create([
@@ -83,15 +109,15 @@ class VendaController extends Controller
     public function update(Request $request, Venda $venda)
     {
         $validated = $request->validate([
-            'usuario_id'       => 'required|exists:usuarios,id',
-            'data_venda'       => 'required|date',
-            'valor_total'      => 'required|numeric|min:0',
-            'itens'            => 'required|array|min:1',
+            'usuario_id'             => 'required|exists:usuarios,id',
+            'data_venda'             => 'required|date',
+            'valor_total'            => 'required|numeric|min:0',
+            'itens'                  => 'required|array|min:1',
             'itens.*.livro_id'       => 'required|exists:livros,id',
             'itens.*.quantidade'     => 'required|integer|min:1',
             'itens.*.valor_unitario' => 'required|numeric|min:0',
-            'forma_pagamento'  => 'nullable|string|max:255',
-            'status_pagamento' => 'nullable|string|max:255',
+            'forma_pagamento'        => 'nullable|string|max:255',
+            'status_pagamento'       => 'nullable|string|max:255',
         ]);
 
         $venda->update([
@@ -100,7 +126,6 @@ class VendaController extends Controller
             'valor_total' => $validated['valor_total'],
         ]);
 
-        // Recria os itens
         $venda->itensVenda()->delete();
         foreach ($validated['itens'] as $item) {
             ItemVenda::create([
@@ -111,7 +136,6 @@ class VendaController extends Controller
             ]);
         }
 
-        // Atualiza ou cria pagamento
         $venda->pagamento()->updateOrCreate(
             ['venda_id' => $venda->id],
             [

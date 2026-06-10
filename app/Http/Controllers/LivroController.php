@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Livro;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
+use Illuminate\Support\Facades\Storage;
 
 class LivroController extends Controller
 {
@@ -35,16 +36,30 @@ class LivroController extends Controller
             'titulo'             => 'required|string|max:255',
             'autor'              => 'required|string|max:255',
             'genero'             => 'required|string|max:255',
-            'editora'            => 'required|string|max:255',
+            'editora'            => 'nullable|string|max:255',
+            'imagem'             => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
             'preco'              => 'required|numeric|min:0',
             'estado_conservacao' => 'required|string|max:255',
             'disponivel'         => 'boolean',
+        ], [
+            'titulo.required'             => 'O título é obrigatório.',
+            'autor.required'              => 'O autor é obrigatório.',
+            'genero.required'             => 'O gênero é obrigatório.',
+            'preco.required'              => 'O preço é obrigatório.',
+            'estado_conservacao.required' => 'O estado de conservação é obrigatório.',
         ]);
+
+        if ($request->hasFile('imagem')) {
+            $validated['imagem'] = $request->file('imagem')->store('livros', 'public');
+        }
+
+        $validated['disponivel'] = $request->boolean('disponivel');
 
         Livro::create($validated);
 
-        return redirect()->route('livros.index')
-                         ->with('success', 'Livro cadastrado com sucesso!');
+        return redirect()
+            ->route('livros.index')
+            ->with('success', 'Livro cadastrado com sucesso!');
     }
 
     public function edit(Livro $livro)
@@ -58,23 +73,62 @@ class LivroController extends Controller
             'titulo'             => 'required|string|max:255',
             'autor'              => 'required|string|max:255',
             'genero'             => 'required|string|max:255',
-            'editora'            => 'required|string|max:255',
+            'editora'            => 'nullable|string|max:255',
+            'imagem'             => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
             'preco'              => 'required|numeric|min:0',
             'estado_conservacao' => 'required|string|max:255',
             'disponivel'         => 'boolean',
+        ], [
+            'titulo.required'             => 'O título é obrigatório.',
+            'autor.required'              => 'O autor é obrigatório.',
+            'genero.required'             => 'O gênero é obrigatório.',
+            'preco.required'              => 'O preço é obrigatório.',
+            'estado_conservacao.required' => 'O estado de conservação é obrigatório.',
         ]);
+
+        if ($request->hasFile('imagem')) {
+            if ($livro->imagem && Storage::disk('public')->exists($livro->imagem)) {
+                Storage::disk('public')->delete($livro->imagem);
+            }
+            $validated['imagem'] = $request->file('imagem')->store('livros', 'public');
+        }
+
+        $validated['disponivel'] = $request->boolean('disponivel');
 
         $livro->update($validated);
 
-        return redirect()->route('livros.index')
-                         ->with('success', 'Livro atualizado com sucesso!');
+        return redirect()
+            ->route('livros.index')
+            ->with('success', 'Livro atualizado com sucesso!');
+    }
+
+    public function search(Request $request)
+    {
+        $search = trim($request->input('search', ''));
+
+        $query = Livro::query();
+
+        if ($search) {
+            $query->where(function ($q) use ($search) {
+                $q->where('titulo', 'like', "%{$search}%")
+                  ->orWhere('autor', 'like', "%{$search}%");
+            });
+        }
+
+        $livros = $query->get();
+        return view('livros.list', compact('livros'));
     }
 
     public function destroy(Livro $livro)
     {
+        if ($livro->imagem && Storage::disk('public')->exists($livro->imagem)) {
+            Storage::disk('public')->delete($livro->imagem);
+        }
+
         $livro->delete();
 
-        return redirect()->route('livros.index')
-                         ->with('success', 'Livro removido com sucesso!');
+        return redirect()
+            ->route('livros.index')
+            ->with('success', 'Livro removido com sucesso!');
     }
 }

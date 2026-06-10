@@ -19,7 +19,11 @@
 </div>
 
 <div class="toolbar">
+<<<<<<< HEAD
     <form method="GET" action="{{ route('troca-livros.search') }}" class="search-wrap" style="max-width: 340px;">
+=======
+    <div class="search-wrap" style="max-width: 340px;">
+>>>>>>> 6956ba793a09afc4d1878caad82cbcc5560616a6
         <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
         <input type="text" name="search" class="search-input" placeholder="Buscar por livro ou usuário…"
                value="{{ request('search') }}" autocomplete="off">

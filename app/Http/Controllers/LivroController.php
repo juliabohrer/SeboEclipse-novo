@@ -100,6 +100,7 @@ class LivroController extends Controller
         return redirect()
             ->route('livros.index')
             ->with('success', 'Livro atualizado com sucesso!');
+<<<<<<< HEAD
     }
 
     public function search(Request $request)
@@ -117,7 +118,30 @@ class LivroController extends Controller
 
         $livros = $query->get();
         return view('livros.list', compact('livros'));
+=======
+>>>>>>> 6956ba793a09afc4d1878caad82cbcc5560616a6
     }
+
+    public function search(Request $request)
+{
+    $search = trim($request->input('search', ''));
+
+    $query = Livro::query();
+
+    if ($search) {
+        foreach (explode(' ', $search) as $palavra) {
+            if ($palavra === '') continue;
+            $query->where(function ($q) use ($palavra) {
+                $q->where('titulo', 'like', "%{$palavra}%")
+                  ->orWhere('autor', 'like', "%{$palavra}%");
+            });
+        }
+    }
+
+    $livros = $query->get();
+
+    return view('livros.list', compact('livros'));
+}
 
     public function destroy(Livro $livro)
     {

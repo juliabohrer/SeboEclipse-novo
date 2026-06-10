@@ -14,9 +14,40 @@ class CompraController extends Controller
 {
     public function index()
     {
+<<<<<<< HEAD:app/Http/Controllers/CompraController.php
         $compras = Compra::with(['usuario', 'itens'])->get();
         return view('compras.list', compact('compras'));
     }
+=======
+        $compras = CompraLivroUsado::with(['usuario', 'itens'])->get();
+
+        return view('compras.list', compact('compras'));
+    }
+
+    public function search(Request $request)
+    {
+        $search = trim($request->input('search', ''));
+
+        $query = CompraLivroUsado::with(['usuario', 'itens']);
+
+        if ($search) {
+            foreach (explode(' ', $search) as $palavra) {
+                if ($palavra === '') continue;
+                $query->where(function ($q) use ($palavra) {
+                    $q->whereHas('usuario', function ($u) use ($palavra) {
+                        $u->where('nome', 'like', "%{$palavra}%");
+                    })
+                    ->orWhere('fornecedor', 'like', "%{$palavra}%")
+                    ->orWhereHas('itens', function ($i) use ($palavra) {
+                        $i->where('titulo', 'like', "%{$palavra}%")
+                          ->orWhere('autor', 'like', "%{$palavra}%");
+                    });
+                });
+            }
+        }
+
+        $compras = $query->get();
+>>>>>>> 6956ba793a09afc4d1878caad82cbcc5560616a6:app/Http/Controllers/CompraLivroUsadoController.php
 
     public function search(Request $request)
     {

@@ -38,14 +38,23 @@ Route::middleware(['auth', 'check.tipo:adm'])->group(function () {
 
     Route::resource('usuarios', UsuarioController::class)->except(['show']);
 
+<<<<<<< HEAD
     Route::get('compras/search', [CompraController::class, 'search'])->name('compras.search');
     Route::resource('compras', CompraController::class)->except(['show']);
+=======
+    Route::get('compras/search', [CompraLivroUsadoController::class, 'search'])->name('compras.search');
+    Route::resource('compras', CompraLivroUsadoController::class)->except(['show']);
+>>>>>>> 6956ba793a09afc4d1878caad82cbcc5560616a6
 
     Route::get('eventos/search', [EventoController::class, 'search'])->name('eventos.search');
     Route::resource('eventos', EventoController::class)->except(['show']);
 
     Route::get('inscricoes/search', [InscricaoEventoController::class, 'search'])->name('inscricoes.search');
+<<<<<<< HEAD
     Route::get('inscricoes/evento/{evento}', [InscricaoEventoController::class, 'porEvento'])->name('inscricoes.porEvento');
+=======
+    Route::get('inscricoes/evento/{evento}', [InscricaoEventoController::class, 'porEvento'])->name('inscricoes.porEvento'); // 👈 novo
+>>>>>>> 6956ba793a09afc4d1878caad82cbcc5560616a6
     Route::resource('inscricoes', InscricaoEventoController::class)->except(['show']);
 
     Route::get('vendas/search', [VendaController::class, 'search'])->name('vendas.search');
@@ -54,7 +63,10 @@ Route::middleware(['auth', 'check.tipo:adm'])->group(function () {
     Route::resource('itens-venda', ItemVendaController::class)->except(['show']);
     Route::resource('pagamentos', PagamentoController::class)->except(['show']);
     Route::resource('troca-livros', TrocaLivroController::class)->except(['show']);
+<<<<<<< HEAD
     Route::get('troca-livros/search', [TrocaLivroController::class, 'search'])->name('troca-livros.search');
+=======
+>>>>>>> 6956ba793a09afc4d1878caad82cbcc5560616a6
 });
 Route::get('/painel/relatorio/eventos/pdf', [PainelController::class, 'relatorioEventosPdf'])->name('painel.relatorio.eventos.pdf');
 Route::get('/painel/relatorio/pdf', [PainelController::class, 'relatorioPdf'])->name('painel.relatorio.pdf');

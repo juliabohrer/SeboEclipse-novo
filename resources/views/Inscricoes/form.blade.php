@@ -1,9 +1,15 @@
 @php
     $editing = isset($inscricao) && $inscricao->id;
+<<<<<<< HEAD
     $isCliente = auth()->check() && auth()->user()->tipo === 'cliente';
     $action  = $editing
         ? route('inscricoes.update', $inscricao)
         : ($isCliente ? route('cliente.inscricoes.store') : route('inscricoes.store'));
+=======
+    $action  = $editing
+        ? route('inscricoes.update', $inscricao)
+        : route('inscricoes.store');
+>>>>>>> 6956ba793a09afc4d1878caad82cbcc5560616a6
 @endphp
 
 @extends('main')
@@ -38,6 +44,7 @@
 
                 <div class="section-divider full"><span>Participante</span></div>
 
+<<<<<<< HEAD
                 @if($isCliente)
                     {{-- Cliente: envia o próprio ID sem mostrar o select --}}
                     <input type="hidden" name="usuario_id" value="{{ auth()->user()->id }}">
@@ -57,6 +64,22 @@
                         @error('usuario_id') <span class="field-error">{{ $message }}</span> @enderror
                     </div>
                 @endif
+=======
+                <div class="form-group">
+                    <label for="usuario_id">Usuário</label>
+                    <select id="usuario_id" name="usuario_id"
+                        class="{{ $errors->has('usuario_id') ? 'is-invalid' : '' }}">
+                        <option value="" disabled {{ old('usuario_id', $inscricao->usuario_id ?? '') === '' ? 'selected' : '' }}>Selecione um usuário…</option>
+                        @foreach ($usuarios as $usuarioOpcao)
+                            <option value="{{ $usuarioOpcao->id }}"
+                                {{ old('usuario_id', $inscricao->usuario_id ?? '') == $usuarioOpcao->id ? 'selected' : '' }}>
+                                {{ $usuarioOpcao->nome }}
+                            </option>
+                        @endforeach
+                    </select>
+                    @error('usuario_id') <span class="field-error">{{ $message }}</span> @enderror
+                </div>
+>>>>>>> 6956ba793a09afc4d1878caad82cbcc5560616a6
 
                 <div class="form-group">
                     <label for="evento_id">Evento</label>
@@ -111,11 +134,15 @@
         </div>
 
         <div class="card-footer">
+<<<<<<< HEAD
             @if($isCliente)
                 <a href="{{ route('cliente.eventos') }}" class="btn btn-ghost">Cancelar</a>
             @else
                 <a href="{{ route('inscricoes.index') }}" class="btn btn-ghost">Cancelar</a>
             @endif
+=======
+            <a href="{{ route('inscricoes.index') }}" class="btn btn-ghost">Cancelar</a>
+>>>>>>> 6956ba793a09afc4d1878caad82cbcc5560616a6
             <button type="submit" class="btn btn-primary">
                 {{ $editing ? 'Salvar Alterações' : 'Registrar Inscrição' }}
             </button>

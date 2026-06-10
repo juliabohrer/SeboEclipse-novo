@@ -26,6 +26,30 @@ class EventoController extends Controller
     public function index()
     {
         $eventos = Evento::with(['usuario', 'inscricoes.usuario'])->get();
+
+        return view('eventos.list', compact('eventos'));
+    }
+
+    public function search(Request $request)
+    {
+        $search = trim($request->input('search', ''));
+
+        $query = Evento::with(['usuario', 'inscricoes.usuario']);
+
+        if ($search) {
+            foreach (explode(' ', $search) as $palavra) {
+                if ($palavra === '') continue;
+                $query->where(function ($q) use ($palavra) {
+                    $q->where('titulo', 'like', "%{$palavra}%")
+                      ->orWhereHas('usuario', function ($u) use ($palavra) {
+                          $u->where('nome', 'like', "%{$palavra}%");
+                      });
+                });
+            }
+        }
+
+        $eventos = $query->get();
+
         return view('eventos.list', compact('eventos'));
     }
 
@@ -51,6 +75,7 @@ class EventoController extends Controller
     public function create()
     {
         $usuarios = Usuario::all();
+
         return view('eventos.form', compact('usuarios'));
     }
 
@@ -89,6 +114,7 @@ class EventoController extends Controller
     public function edit(Evento $evento)
     {
         $usuarios = Usuario::all();
+
         return view('eventos.form', compact('evento', 'usuarios'));
     }
 
@@ -138,11 +164,19 @@ class EventoController extends Controller
         return redirect()
             ->route('eventos.index')
             ->with('success', 'Evento removido com sucesso!');
+<<<<<<< HEAD
     }
 
     public function porEvento(Evento $evento)
     {
         $inscricoes = $evento->inscricoes()->with('usuario')->get();
         return view('inscricoes.porEvento', compact('evento', 'inscricoes'));
+=======
+>>>>>>> 6956ba793a09afc4d1878caad82cbcc5560616a6
     }
+    public function porEvento(Evento $evento)
+{
+    $inscricoes = $evento->inscricoes()->with('usuario')->get();
+    return view('inscricoes.porEvento', compact('evento', 'inscricoes'));
+}
 }

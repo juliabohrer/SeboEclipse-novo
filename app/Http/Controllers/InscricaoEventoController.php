@@ -96,6 +96,7 @@ class InscricaoEventoController extends Controller
 
     public function edit(InscricaoEvento $inscricao)
     {
+        
         $usuarios = Usuario::all();
         $eventos = Evento::all();
         $eventoSelecionado = $inscricao->evento_id;
